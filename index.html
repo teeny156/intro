@@ -41,7 +41,7 @@
     html { scroll-behavior: smooth; }
     body {
       font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-      background: var(--bg);
+      background: #050816;
       color: var(--text);
       line-height: 1.7;
       word-break: keep-all;
@@ -67,15 +67,63 @@
       width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 16px;
     }
 
-    section { padding: 80px 0; border-bottom: 1px solid var(--line); }
-    section:last-of-type { border-bottom: none; }
+    /* 우주 배경: 지구(아래) + 위성(위) */
+    .space {
+      position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+      background: radial-gradient(ellipse at 50% 120%, #0b2a5b 0%, #071230 45%, #050816 75%);
+    }
+    .stars { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .stars circle { fill: #fff; }
+    .stars .tw { animation: twinkle 4s ease-in-out infinite; }
+    @keyframes twinkle { 50% { opacity: .15; } }
+
+    .earth {
+      --size: max(1200px, 150vw);
+      position: absolute; left: 50%; bottom: calc(var(--size) * -0.8);
+      width: var(--size); height: var(--size); transform: translateX(-50%);
+    }
+    .earth svg { width: 100%; height: 100%; overflow: visible; }
+    .earth .clouds { transform-origin: 500px 500px; animation: spin 400s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .beam { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .beam polygon { animation: pulse 3s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .45; } }
+
+    .satellite {
+      position: absolute; left: 74%; top: 11vh; width: 180px;
+      transform: translateX(-50%);
+      animation: float 6s ease-in-out infinite;
+      filter: drop-shadow(0 0 18px rgba(129, 140, 248, .35));
+    }
+    /* --tilt: JS가 지구 중심을 향하도록 계산한 각도 */
+    @keyframes float {
+      0%, 100% { transform: translateX(-50%) translateY(0) rotate(calc(var(--tilt, 0deg) - 2deg)); }
+      50%      { transform: translateX(-50%) translateY(8px) rotate(calc(var(--tilt, 0deg) + 1deg)); }
+    }
+    .satellite svg { display: block; width: 100%; height: auto; }
+    .satellite .blink { animation: twinkle 1.6s steps(2) infinite; }
+
+    section {
+      padding: 56px 40px; margin-bottom: 24px; border-radius: 20px;
+      background: color-mix(in srgb, var(--surface) 80%, transparent);
+      border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
     h2 {
       font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
       color: var(--accent); margin-bottom: 24px;
     }
 
     /* 히어로 */
-    .hero { padding: 120px 0 100px; }
+    .hero {
+      padding: 120px 0 140px; margin: 0; color: #f5f5f4;
+      background: none; border: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+      text-shadow: 0 2px 16px rgba(5, 8, 22, .6);
+    }
+    .hero h1 span { color: #a5b4fc; }
+    .hero p { color: #cbd5e1; }
+    .hero .btn:not(.primary) { color: var(--text); text-shadow: none; }
     .avatar {
       width: 96px; height: 96px; border-radius: 50%;
       background: linear-gradient(135deg, var(--accent), #ec4899);
@@ -83,8 +131,7 @@
       color: #fff; font-size: 36px; font-weight: 800; margin-bottom: 28px;
     }
     .hero h1 { font-size: clamp(32px, 6vw, 52px); line-height: 1.2; letter-spacing: -0.03em; font-weight: 800; }
-    .hero h1 span { color: var(--accent); }
-    .hero p { margin-top: 20px; font-size: 18px; color: var(--muted); max-width: 560px; }
+    .hero p { margin-top: 20px; font-size: 18px; max-width: 560px; }
     .cta { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
     .btn {
       padding: 12px 22px; border-radius: 10px; font-weight: 600; font-size: 15px;
@@ -150,26 +197,117 @@
     .contact p { font-size: 17px; margin-bottom: 24px; }
     .links { display: flex; flex-wrap: wrap; gap: 12px; }
 
-    footer { padding: 40px 0; text-align: center; color: var(--muted); font-size: 13px; }
+    footer { padding: 40px 0 60px; text-align: center; color: #94a3b8; font-size: 13px; }
 
     /* 스크롤 등장 애니메이션 */
     .reveal { opacity: 0; transform: translateY(20px); transition: opacity .7s ease, transform .7s ease; }
     .reveal.show { opacity: 1; transform: none; }
     @media (prefers-reduced-motion: reduce) {
       .reveal { opacity: 1; transform: none; transition: none; }
+      .satellite, .earth .clouds, .beam polygon, .stars .tw { animation: none; }
       html { scroll-behavior: auto; }
     }
 
     @media (max-width: 600px) {
       .wrap { padding: 0 16px; }
       nav a { display: none; }
-      section { padding: 60px 0; }
-      .hero { padding: 80px 0 70px; }
+      section { padding: 40px 20px; }
+      .hero { padding: 150px 0 110px; }
+      .satellite { width: 120px; left: 70%; top: 76px; }
       .timeline li { grid-template-columns: 1fr; gap: 4px; }
     }
   </style>
 </head>
 <body>
+  <!-- 우주 배경 -->
+  <div class="space" aria-hidden="true">
+    <svg class="stars" id="stars"></svg>
+
+    <svg class="beam" id="beam">
+      <defs>
+        <linearGradient id="beamGrad" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#a5b4fc" stop-opacity=".55" />
+          <stop offset="1" stop-color="#a5b4fc" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon fill="url(#beamGrad)" />
+    </svg>
+
+    <div class="earth">
+      <svg viewBox="0 0 1000 1000">
+        <defs>
+          <radialGradient id="ocean" cx="50%" cy="25%" r="75%">
+            <stop offset="0" stop-color="#5bb4ff" />
+            <stop offset=".35" stop-color="#2273d6" />
+            <stop offset=".75" stop-color="#0b3275" />
+            <stop offset="1" stop-color="#061634" />
+          </radialGradient>
+          <radialGradient id="atmo" cx="50%" cy="50%" r="50%">
+            <stop offset=".90" stop-color="#8ec5ff" stop-opacity="0" />
+            <stop offset=".945" stop-color="#8ec5ff" stop-opacity=".6" />
+            <stop offset="1" stop-color="#8ec5ff" stop-opacity="0" />
+          </radialGradient>
+          <linearGradient id="night" x1="0" x2="1">
+            <stop offset="0" stop-color="#000814" stop-opacity=".5" />
+            <stop offset=".45" stop-color="#000814" stop-opacity="0" />
+            <stop offset="1" stop-color="#000814" stop-opacity=".25" />
+          </linearGradient>
+          <clipPath id="globe"><circle cx="500" cy="500" r="500" /></clipPath>
+          <filter id="soft"><feGaussianBlur stdDeviation="6" /></filter>
+        </defs>
+
+        <circle cx="500" cy="500" r="560" fill="url(#atmo)" />
+        <circle cx="500" cy="500" r="500" fill="url(#ocean)" />
+        <g clip-path="url(#globe)">
+          <g fill="#3f8f5a" opacity=".9">
+            <path d="M330 120 C360 80 430 70 470 95 C500 115 490 150 455 165 C420 180 400 210 360 205 C320 200 300 160 330 120Z" />
+            <path d="M560 40 C600 25 660 45 670 80 C680 110 640 120 620 140 C600 160 560 150 550 120 C540 90 530 55 560 40Z" />
+            <path d="M700 150 C740 130 800 150 820 190 C835 220 790 235 750 225 C715 215 690 180 700 150Z" />
+            <path d="M170 200 C200 170 250 175 260 205 C270 230 230 250 195 240 C170 232 155 220 170 200Z" />
+          </g>
+          <g fill="#c2a36b" opacity=".45">
+            <path d="M600 70 C625 62 645 75 640 95 C632 112 605 110 598 92Z" />
+            <path d="M360 130 C380 118 410 125 405 145 C398 160 370 160 360 148Z" />
+          </g>
+          <g class="clouds" id="clouds" fill="#fff" opacity=".55" filter="url(#soft)"></g>
+          <rect width="1000" height="1000" fill="url(#night)" />
+        </g>
+      </svg>
+    </div>
+
+    <div class="satellite" id="satellite"><svg viewBox="0 0 200 200">
+      <defs>
+        <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#3b5bdb" />
+          <stop offset="1" stop-color="#1e2a78" />
+        </linearGradient>
+        <linearGradient id="gold" x1="0" x2="1">
+          <stop offset="0" stop-color="#fcd34d" />
+          <stop offset=".5" stop-color="#f59e0b" />
+          <stop offset="1" stop-color="#b45309" />
+        </linearGradient>
+      </defs>
+      <!-- 태양전지판 -->
+      <g stroke="#a5b4fc" stroke-width="1.2">
+        <rect x="4" y="70" width="64" height="36" rx="2" fill="url(#panel)" />
+        <rect x="132" y="70" width="64" height="36" rx="2" fill="url(#panel)" />
+        <path d="M20 70v36M36 70v36M52 70v36M4 88h64M148 70v36M164 70v36M180 70v36M132 88h64" stroke-opacity=".6" fill="none" />
+      </g>
+      <path d="M68 88h10M122 88h10" stroke="#cbd5e1" stroke-width="3" />
+      <!-- 본체 -->
+      <rect x="78" y="56" width="44" height="64" rx="5" fill="url(#gold)" stroke="#92400e" stroke-width="1" />
+      <path d="M84 70h32M84 84h32M84 98h32" stroke="#92400e" stroke-opacity=".35" />
+      <!-- 상단 안테나 -->
+      <path d="M100 56V36" stroke="#cbd5e1" stroke-width="2" />
+      <circle class="blink" cx="100" cy="34" r="3.5" fill="#f87171" />
+      <!-- 지구를 향한 접시 안테나 -->
+      <rect x="95" y="120" width="10" height="16" fill="#94a3b8" />
+      <path d="M68 160 Q100 126 132 160 Z" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
+      <path d="M100 146V170" stroke="#cbd5e1" stroke-width="2" />
+      <circle cx="100" cy="172" r="3.5" fill="#a5b4fc" />
+    </svg></div>
+  </div>
+
   <header>
     <div class="wrap">
       <a href="#" class="logo">박원용</a>
@@ -304,6 +442,74 @@
       });
     }, { threshold: 0.12 });
     document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+    // 우주 배경: 별, 구름, 위성 방향과 신호 빔
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const svgEl = (tag, attrs) => {
+      const el = document.createElementNS(SVG_NS, tag);
+      for (const k in attrs) el.setAttribute(k, attrs[k]);
+      return el;
+    };
+
+    const stars = document.getElementById('stars');
+    for (let i = 0; i < 180; i++) {
+      const c = svgEl('circle', {
+        cx: (Math.random() * 100).toFixed(2) + '%',
+        cy: (Math.random() * 85).toFixed(2) + '%',
+        r: (Math.random() * 1.1 + 0.3).toFixed(2),
+        opacity: (Math.random() * 0.6 + 0.3).toFixed(2),
+      });
+      if (Math.random() < 0.3) {
+        c.classList.add('tw');
+        c.style.animationDelay = (Math.random() * 4).toFixed(2) + 's';
+      }
+      stars.append(c);
+    }
+
+    // 구름은 지구 가장자리 근처를 따라 천천히 회전
+    const clouds = document.getElementById('clouds');
+    for (let i = 0; i < 28; i++) {
+      const a = (i / 28) * Math.PI * 2 + Math.random() * 0.2;
+      const r = 400 + Math.random() * 90;
+      clouds.append(svgEl('ellipse', {
+        cx: (500 + Math.cos(a) * r).toFixed(1),
+        cy: (500 + Math.sin(a) * r).toFixed(1),
+        rx: (40 + Math.random() * 60).toFixed(1),
+        ry: (10 + Math.random() * 12).toFixed(1),
+        transform: `rotate(${(a * 180 / Math.PI + 90).toFixed(1)} ${(500 + Math.cos(a) * r).toFixed(1)} ${(500 + Math.sin(a) * r).toFixed(1)})`,
+      }));
+    }
+
+    const sat = document.getElementById('satellite');
+    const beam = document.getElementById('beam');
+    const beamPoly = beam.querySelector('polygon');
+    const beamGrad = document.getElementById('beamGrad');
+
+    function aimSatellite() {
+      const w = innerWidth, h = innerHeight;
+      const size = Math.max(1200, 1.5 * w);
+      const earth = { x: w / 2, y: h + 0.3 * size };           // 지구 중심 (화면 좌표)
+      const s = { x: sat.offsetLeft, y: sat.offsetTop + sat.offsetHeight / 2 }; // 위성 중심
+      const tilt = Math.atan2(-(earth.x - s.x), earth.y - s.y); // 아래(0,1) 기준 시계방향 각도
+      sat.style.setProperty('--tilt', (tilt * 180 / Math.PI).toFixed(2) + 'deg');
+
+      // 접시 안테나 끝 위치 → 지구 쪽으로 퍼지는 빔
+      const d = sat.offsetHeight * 0.36;
+      const ax = s.x - Math.sin(tilt) * d, ay = s.y + Math.cos(tilt) * d;
+      const endY = h - 0.2 * size * 0.55;
+      const t = (endY - ay) / (earth.y - ay);
+      const ex = ax + (earth.x - ax) * t;
+      const len = Math.hypot(ex - ax, endY - ay);
+      const nx = -(endY - ay) / len, ny = (ex - ax) / len;
+      const spread = len * 0.16;
+      beam.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      beamPoly.setAttribute('points',
+        `${ax},${ay} ${ex + nx * spread},${endY + ny * spread} ${ex - nx * spread},${endY - ny * spread}`);
+      beamGrad.setAttribute('x1', ax); beamGrad.setAttribute('y1', ay);
+      beamGrad.setAttribute('x2', ex); beamGrad.setAttribute('y2', endY);
+    }
+    aimSatellite();
+    addEventListener('resize', aimSatellite);
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
