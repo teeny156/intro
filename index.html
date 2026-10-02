@@ -275,6 +275,7 @@
     /* 일정 (달력) */
     .sc-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
     .sc-head h2 { margin-bottom: 0; }
+    .sc-head-btns { display: flex; gap: 8px; }
     .sc-auth {
       font: inherit; font-size: 13px; color: var(--muted); cursor: pointer;
       background: none; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px;
@@ -333,7 +334,10 @@
     .sc-acts button:hover { color: var(--accent); border-color: var(--accent); }
     .sc-acts button.del:hover { color: #ef4444; border-color: #ef4444; }
     .sc-empty { font-size: 14px; color: var(--muted); padding: 4px 2px; }
-    .sc-form { display: grid; grid-template-columns: 120px 1fr 1fr auto auto; gap: 8px; margin-top: 14px; }
+    .sc-form { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 8px; margin-top: 14px; }
+    .sc-range { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .sc-range label { display: flex; align-items: center; gap: 6px; }
+    .sc-form .sc-range input { width: auto; }
     .sc-form[hidden], .sc-form [hidden] { display: none; }
     .sc-form input, .sc-login input {
       width: 100%; font: inherit; font-size: 14px; color: var(--text); background: var(--surface);
@@ -361,7 +365,6 @@
       .sc-month { font-size: 17px; min-width: 0; }
       .sc-form { grid-template-columns: 1fr 1fr; }
       .sc-form #scTitle, .sc-form #scMemo { grid-column: 1 / -1; grid-row: auto; }
-      .sc-form #scTime { grid-column: 1 / -1; }
       .sc-item { grid-template-columns: 48px 1fr; }
       .sc-acts { grid-column: 1 / -1; justify-content: flex-end; }
     }
@@ -713,11 +716,14 @@
       </p>
     </section>
 
-    <!-- 일정 (보기: 누구나 / 편집: 관리자 로그인) -->
+    <!-- 일정 (보기: 누구나 / 편집: 지정된 편집자 계정 로그인) -->
     <section id="schedule" class="reveal">
       <div class="sc-head">
         <h2>Schedule</h2>
-        <button class="sc-auth" id="scAuthBtn" type="button">🔒 관리자 로그인</button>
+        <div class="sc-head-btns">
+          <button class="sc-auth" id="scPwBtn" type="button" hidden>🔑 비밀번호 변경</button>
+          <button class="sc-auth" id="scAuthBtn" type="button">🔒 일정 편집 로그인</button>
+        </div>
       </div>
       <div class="sc-bar">
         <button class="sc-nav" id="scPrev" type="button" aria-label="이전 달">‹</button>
@@ -736,9 +742,14 @@
           <span class="sc-status" id="scStatus"></span>
         </div>
         <ul class="sc-list" id="scList"></ul>
-        <!-- 관리자만 보이는 일정 작성 폼 -->
+        <!-- 편집자에게만 보이는 일정 작성 폼 -->
         <form class="sc-form" id="scForm" hidden>
-          <input id="scTime" type="time" aria-label="시간 (선택)" />
+          <div class="sc-range">
+            <label>시작일 <input id="scStart" type="date" required /></label>
+            <span aria-hidden="true">~</span>
+            <label>종료일 <input id="scEnd" type="date" required /></label>
+            <input id="scTime" type="time" aria-label="시간 (선택)" />
+          </div>
           <input id="scTitle" type="text" placeholder="일정 제목" maxlength="60" required />
           <input id="scMemo" type="text" placeholder="메모 (선택)" maxlength="300" />
           <button class="btn primary" id="scSave" type="submit">추가</button>
@@ -747,17 +758,32 @@
       </div>
     </section>
 
-    <!-- 관리자 로그인 -->
+    <!-- 일정 편집자 로그인 -->
     <dialog class="sc-login" id="scLogin" aria-labelledby="scLoginTitle">
       <form id="scLoginForm" method="dialog">
-        <h3 id="scLoginTitle">관리자 로그인</h3>
-        <p>일정 편집은 관리자만 할 수 있어요.</p>
-        <input id="scEmail" type="email" placeholder="이메일" autocomplete="username" required />
+        <h3 id="scLoginTitle">일정 편집 로그인</h3>
+        <p>등록된 편집자 계정으로 로그인하면 일정을 편집할 수 있어요.</p>
+        <input id="scEmail" type="text" placeholder="아이디 또는 이메일" autocomplete="username" autocapitalize="off" spellcheck="false" required />
         <input id="scPw" type="password" placeholder="비밀번호" autocomplete="current-password" required />
         <span class="sc-status" id="scLoginStatus"></span>
         <div class="sc-login-row">
           <button class="btn" type="button" id="scLoginCancel">취소</button>
           <button class="btn primary" type="submit" id="scLoginBtn">로그인</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- 비밀번호 변경 (로그인한 편집자 본인) -->
+    <dialog class="sc-login" id="scPwDlg" aria-labelledby="scPwTitle">
+      <form id="scPwForm" method="dialog">
+        <h3 id="scPwTitle">비밀번호 변경</h3>
+        <p>새 비밀번호는 8자 이상으로 정해 주세요.</p>
+        <input id="scNewPw" type="password" placeholder="새 비밀번호" autocomplete="new-password" minlength="8" required />
+        <input id="scNewPw2" type="password" placeholder="새 비밀번호 확인" autocomplete="new-password" minlength="8" required />
+        <span class="sc-status" id="scPwStatus"></span>
+        <div class="sc-login-row">
+          <button class="btn" type="button" id="scPwCancel">취소</button>
+          <button class="btn primary" type="submit" id="scPwSave">변경</button>
         </div>
       </form>
     </dialog>
@@ -1147,20 +1173,23 @@
     loadGuestbook();
 
     // ───────── 일정 관리 (달력) ─────────
-    // 보기는 누구나, 추가·수정·삭제는 관리자 로그인 후에만 (DB의 RLS 정책으로도 강제됨)
-    const ADMIN_EMAIL = 'teeny156@naver.com';
+    // 보기는 누구나, 추가·수정·삭제는 schedule_editors 표에 등록된 계정만 (DB의 RLS 정책으로도 강제됨)
+    const LOGIN_ID_DOMAIN = 'naver.com';
     const $ = (id) => document.getElementById(id);
     const scGrid = $('scGrid'), scList = $('scList'), scForm = $('scForm');
+    const scStart = $('scStart'), scEnd = $('scEnd');
     const scTime = $('scTime'), scTitle = $('scTitle'), scMemo = $('scMemo');
     const scSave = $('scSave'), scCancel = $('scCancel'), scStatus = $('scStatus');
     const scAuthBtn = $('scAuthBtn'), scLogin = $('scLogin');
 
     const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     const todayStr = () => ymd(new Date());
+    const parseYmd = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+    const mdLabel = (s) => { const d = parseYmd(s); return `${d.getMonth() + 1}월 ${d.getDate()}일`; };
     let view = new Date(); view.setDate(1);   // 표시 중인 달의 1일
     let selDate = todayStr();                 // 선택한 날짜 (YYYY-MM-DD)
     let events = {};                          // 날짜 → 일정 배열
-    let isAdmin = false;
+    let canEdit = false;
     let editingId = null;
 
     function gridRange() {
@@ -1173,8 +1202,8 @@
       const [start, end] = gridRange();
       const { data, error } = await db
         .from('schedules')
-        .select('id, date, time, title, memo')
-        .gte('date', ymd(start)).lte('date', ymd(end))
+        .select('id, date, end_date, time, title, memo')
+        .lte('date', ymd(end)).gte('end_date', ymd(start))   // 달력 범위와 겹치는 일정
         .order('date').order('time', { ascending: true, nullsFirst: true });
       events = {};
       if (error) {
@@ -1182,7 +1211,12 @@
         console.error(error);
       } else {
         scStatus.textContent = '';
-        for (const e of data) (events[e.date] ||= []).push(e);
+        // 여러 날 일정은 달력에 보이는 각 날짜마다 넣어 둠
+        for (const e of data) {
+          const d = parseYmd(e.date < ymd(start) ? ymd(start) : e.date);
+          const last = e.end_date > ymd(end) ? ymd(end) : e.end_date;
+          for (; ymd(d) <= last; d.setDate(d.getDate() + 1)) (events[ymd(d)] ||= []).push(e);
+        }
       }
       renderCalendar();
       renderDay();
@@ -1248,7 +1282,7 @@
       if (!list.length) {
         const li = document.createElement('li');
         li.className = 'sc-empty';
-        li.textContent = isAdmin ? '일정이 없어요. 아래에서 추가해 보세요.' : '등록된 일정이 없어요.';
+        li.textContent = canEdit ? '일정이 없어요. 아래에서 추가해 보세요.' : '등록된 일정이 없어요.';
         scList.append(li);
       }
       for (const e of list) {
@@ -1260,9 +1294,14 @@
         const title = document.createElement('b');
         title.textContent = e.title;
         body.append(title);
+        if (e.end_date !== e.date) {
+          const range = document.createElement('small');
+          range.textContent = `${mdLabel(e.date)} ~ ${mdLabel(e.end_date)}`;
+          body.append(range);
+        }
         if (e.memo) { const memo = document.createElement('small'); memo.textContent = e.memo; body.append(memo); }
         li.append(t, body);
-        if (isAdmin) {
+        if (canEdit) {
           const acts = document.createElement('div');
           acts.className = 'sc-acts';
           const edit = document.createElement('button');
@@ -1276,18 +1315,29 @@
         }
         scList.append(li);
       }
-      scForm.hidden = !isAdmin;
+      scForm.hidden = !canEdit;
     }
 
     function resetForm() {
       editingId = null;
       scForm.reset();
+      scStart.value = scEnd.value = scEnd.min = selDate;
       scSave.textContent = '추가';
       scCancel.hidden = true;
     }
 
+    // 시작일을 바꾸면 종료일이 그보다 앞서지 않게 맞춤
+    scStart.addEventListener('change', () => {
+      if (!scStart.value) return;
+      scEnd.min = scStart.value;
+      if (!scEnd.value || scEnd.value < scStart.value) scEnd.value = scStart.value;
+    });
+
     function startEdit(e) {
       editingId = e.id;
+      scStart.value = e.date;
+      scEnd.value = e.end_date;
+      scEnd.min = e.date;
       scTime.value = e.time ? e.time.slice(0, 5) : '';
       scTitle.value = e.title;
       scMemo.value = e.memo || '';
@@ -1308,7 +1358,10 @@
       ev.preventDefault();
       const title = scTitle.value.trim();
       if (!title) return;
-      const row = { date: selDate, time: scTime.value || null, title, memo: scMemo.value.trim() || null };
+      const date = scStart.value, end_date = scEnd.value;
+      if (!date || !end_date) return;
+      if (end_date < date) { scStatus.textContent = '종료일이 시작일보다 빨라요.'; return; }
+      const row = { date, end_date, time: scTime.value || null, title, memo: scMemo.value.trim() || null };
       scSave.disabled = true;
       scStatus.textContent = '저장 중…';
       const { error } = editingId
@@ -1328,17 +1381,25 @@
       view = new Date(); view.setDate(1); selDate = todayStr(); resetForm(); loadSchedules();
     });
 
-    // 관리자 로그인 / 로그아웃
-    function applyAuth(session) {
-      isAdmin = !!session && session.user.email === ADMIN_EMAIL;
-      scAuthBtn.textContent = isAdmin ? '✏️ 편집 중 · 로그아웃' : '🔒 관리자 로그인';
-      scAuthBtn.classList.toggle('on', isAdmin);
-      if (!isAdmin) resetForm();
+    // 편집 권한 확인: DB 함수가 로그인한 계정이 편집자 목록에 있는지 알려줌
+    async function checkEditor() {
+      const { data, error } = await db.rpc('is_schedule_editor');
+      if (error) console.error(error);
+      return data === true;
+    }
+
+    // 편집자 로그인 / 로그아웃
+    async function applyAuth(session) {
+      canEdit = !!session && await checkEditor();
+      scAuthBtn.textContent = canEdit ? '✏️ 편집 중 · 로그아웃' : '🔒 일정 편집 로그인';
+      scAuthBtn.classList.toggle('on', canEdit);
+      $('scPwBtn').hidden = !canEdit;
+      if (!canEdit) resetForm();
       renderDay();
     }
 
     scAuthBtn.addEventListener('click', async () => {
-      if (isAdmin) { await db.auth.signOut(); return; }
+      if (canEdit) { await db.auth.signOut(); return; }
       $('scLoginStatus').textContent = '';
       $('scLoginForm').reset();
       scLogin.showModal();
@@ -1351,15 +1412,45 @@
       const btn = $('scLoginBtn'), st = $('scLoginStatus');
       btn.disabled = true;
       st.textContent = '로그인 중…';
-      const { data, error } = await db.auth.signInWithPassword({ email: $('scEmail').value.trim(), password: $('scPw').value });
+      // '@' 없이 아이디만 넣으면 LOGIN_ID_DOMAIN 메일 주소로 로그인 (예: teeny156 → teeny156@naver.com)
+      const id = $('scEmail').value.trim();
+      const email = id.includes('@') ? id : `${id}@${LOGIN_ID_DOMAIN}`;
+      const { data, error } = await db.auth.signInWithPassword({ email, password: $('scPw').value });
       btn.disabled = false;
       if (error) { st.textContent = '이메일 또는 비밀번호가 맞지 않아요.'; return; }
-      if (data.user.email !== ADMIN_EMAIL) { await db.auth.signOut(); st.textContent = '관리자 계정이 아니에요.'; return; }
+      if (!(await checkEditor())) { await db.auth.signOut(); st.textContent = '일정 편집 권한이 없는 계정이에요.'; return; }
       scLogin.close();
     });
 
-    db.auth.onAuthStateChange((_event, session) => applyAuth(session));
+    // 비밀번호 변경: 로그인한 본인 계정의 비밀번호를 바꿈
+    const scPwDlg = $('scPwDlg');
+    $('scPwBtn').addEventListener('click', () => {
+      $('scPwStatus').textContent = '';
+      $('scPwForm').reset();
+      scPwDlg.showModal();
+    });
+    $('scPwCancel').addEventListener('click', () => scPwDlg.close());
+    scPwDlg.addEventListener('click', (e) => { if (e.target === scPwDlg) scPwDlg.close(); });
+
+    $('scPwForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('scPwSave'), st = $('scPwStatus');
+      const pw = $('scNewPw').value;
+      if (pw !== $('scNewPw2').value) { st.textContent = '두 비밀번호가 서로 달라요.'; return; }
+      btn.disabled = true;
+      st.textContent = '변경 중…';
+      const { error } = await db.auth.updateUser({ password: pw });
+      btn.disabled = false;
+      if (error) { st.textContent = '변경하지 못했어요. 다시 로그인한 뒤 시도해 주세요.'; console.error(error); return; }
+      st.textContent = '';
+      scPwDlg.close();
+      scStatus.textContent = '비밀번호를 바꿨어요 ✓';
+    });
+
+    // 콜백 안에서 바로 DB를 호출하면 supabase-js가 멈출 수 있어 한 박자 미룸
+    db.auth.onAuthStateChange((_event, session) => { setTimeout(() => applyAuth(session), 0); });
     db.auth.getSession().then(({ data }) => applyAuth(data.session));
+    resetForm();
     loadSchedules();
   </script>
 </body>
