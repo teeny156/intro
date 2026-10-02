@@ -144,8 +144,31 @@
     /* 소개 */
     .about p { font-size: 17px; margin-bottom: 16px; }
     .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 28px; }
-    .fact { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+    .fact {
+      position: relative; overflow: hidden;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+    }
+    .fact:hover { transform: translateY(-3px); border-color: var(--c); box-shadow: 0 10px 24px color-mix(in srgb, var(--c) 22%, transparent); }
+    /* 카드 오른쪽 위 은은한 색 번짐 */
+    .fact::after {
+      content: ""; position: absolute; right: -30px; top: -30px; width: 110px; height: 110px; border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--c) 22%, transparent), transparent 70%);
+      pointer-events: none;
+    }
     .fact b { display: block; font-size: 13px; color: var(--muted); font-weight: 500; }
+    .fact-icon {
+      width: 52px; height: 52px; border-radius: 14px; margin-bottom: 14px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--c), var(--c2));
+      box-shadow: 0 6px 16px color-mix(in srgb, var(--c) 35%, transparent);
+    }
+    .fact-icon svg { width: 30px; height: 30px; }
+    .fact:hover .fact-icon svg { animation: bob .6s ease; }
+    @keyframes bob { 50% { transform: translateY(-3px) rotate(-6deg); } }
+    .fact.home { --c: #10b981; --c2: #0ea5e9; }
+    .fact.work { --c: #6366f1; --c2: #8b5cf6; }
+    .fact.like { --c: #f59e0b; --c2: #ec4899; }
 
     /* 기술 */
     .tags { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -159,7 +182,18 @@
     .timeline li { display: grid; grid-template-columns: 130px 1fr; gap: 20px; padding: 18px 0; border-top: 1px dashed var(--line); }
     .timeline li:first-child { border-top: none; }
     .when { color: var(--muted); font-size: 14px; padding-top: 2px; }
-    .timeline h3 { font-size: 17px; }
+    .timeline h3 { font-size: 17px; display: flex; align-items: center; gap: 10px; }
+    /* 학교 마크: 정사각 원형 배지 (가로형 로고는 왼쪽 엠블럼 부분만 보이게) */
+    .school-logo {
+      flex: none; width: 30px; height: 30px; border-radius: 50%; overflow: hidden;
+      background: #fff; box-shadow: 0 0 0 1px var(--line);
+    }
+    .school-logo img { display: block; height: 100%; width: auto; }
+    /* 회사·학교 홈페이지 링크 */
+    .org-link { display: inline-flex; align-items: center; gap: 10px; transition: color .15s; }
+    .org-link::after { content: "↗"; font-size: 13px; color: var(--muted); opacity: 0; transform: translate(-4px, 2px); transition: opacity .15s, transform .15s; }
+    .org-link:hover { color: var(--accent); }
+    .org-link:hover::after { opacity: 1; transform: translate(0, -1px); color: var(--accent); }
     .timeline p { color: var(--muted); font-size: 15px; }
 
     /* 프로젝트 */
@@ -182,6 +216,55 @@
     .thumb.fit img:not(.bg) { position: relative; object-fit: contain; }
     .card:hover .thumb.fit .bg { transform: scale(1.38); }
     .card-body { padding: 16px 20px 18px; }
+    .card .thumb { cursor: pointer; position: relative; }
+    .card .thumb:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+    /* 이미지 위 '자세히 보기' 힌트 */
+    .card .thumb::after {
+      content: "자세히 보기 +"; position: absolute; right: 10px; bottom: 10px;
+      padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+      background: rgba(5, 8, 22, .65); color: #fff; backdrop-filter: blur(4px);
+      opacity: 0; transform: translateY(4px); transition: opacity .2s, transform .2s;
+    }
+    .card:hover .thumb::after, .card .thumb:focus-visible::after { opacity: 1; transform: none; }
+
+    /* 프로젝트 상세 팝업 */
+    .pj-modal {
+      width: min(680px, calc(100% - 32px)); max-height: calc(100dvh - 48px);
+      margin: auto; padding: 0; border: 1px solid var(--line); border-radius: 18px;
+      background: var(--surface); color: var(--text); overflow: auto;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+    }
+    .pj-modal::backdrop { background: rgba(5, 8, 22, .6); backdrop-filter: blur(4px); }
+    .pj-modal[open] { animation: pop .25s ease; }
+    .pj-modal[open]::backdrop { animation: fade .25s ease; }
+    @keyframes pop { from { opacity: 0; transform: translateY(16px) scale(.97); } }
+    @keyframes fade { from { opacity: 0; } }
+    .pj-media { aspect-ratio: 16 / 8; background: #071230; position: relative; overflow: hidden; }
+    .pj-media img, .pj-media svg { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .pj-media.fit .bg { position: absolute; inset: 0; filter: blur(18px) brightness(.55); transform: scale(1.3); }
+    .pj-media.fit img:not(.bg) { position: relative; object-fit: contain; }
+    .pj-content { position: relative; padding: 24px 28px 26px; }
+    .pj-close {
+      position: absolute; top: -52px; right: 14px; width: 36px; height: 36px; border-radius: 50%;
+      border: none; background: rgba(5, 8, 22, .6); color: #fff; font-size: 15px; cursor: pointer;
+      backdrop-filter: blur(4px);
+    }
+    .pj-close:hover { background: rgba(5, 8, 22, .85); }
+    .pj-kicker { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--accent); }
+    .pj-modal h3 { font-size: 24px; letter-spacing: -0.02em; margin: 2px 0 12px; }
+    .pj-summary { font-size: 15.5px; margin-bottom: 18px; }
+    .pj-facts { display: grid; grid-template-columns: 96px 1fr; gap: 8px 14px; font-size: 14px; padding: 16px 18px; border-radius: 12px; background: var(--accent-soft); }
+    .pj-facts dt { color: var(--muted); font-weight: 600; }
+    .pj-facts dd { margin: 0; }
+    .pj-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .pj-note:empty { display: none; }
+    .pj-src { margin-top: 14px; font-size: 12px; color: var(--muted); }
+    .pj-src a { text-decoration: underline; text-underline-offset: 2px; }
+    .pj-src a:hover { color: var(--accent); }
+    @media (max-width: 600px) {
+      .pj-content { padding: 20px; }
+      .pj-facts { grid-template-columns: 80px 1fr; }
+    }
     .credits { margin-top: 18px; font-size: 12px; color: var(--muted); line-height: 1.6; }
     .credits a { text-decoration: underline; text-underline-offset: 2px; }
     .credits a:hover { color: var(--accent); }
@@ -220,7 +303,7 @@
     .reveal.show { opacity: 1; transform: none; }
     @media (prefers-reduced-motion: reduce) {
       .reveal { opacity: 1; transform: none; transition: none; }
-      .satellite, .earth .clouds, .beam polygon, .stars .tw, .thumb .trail, .thumb .tw { animation: none; }
+      .satellite, .earth .clouds, .beam polygon, .stars .tw, .thumb .trail, .thumb .tw, .fact:hover .fact-icon svg { animation: none; }
       html { scroll-behavior: auto; }
     }
 
@@ -356,9 +439,45 @@
       <p>LIG Defense &amp; Aerospace에서 위성 개발 업무를 하고 있는 박원용입니다.</p>
       <p>요즘은 AI에 관심을 가지고 공부하고 있고, 무언가 새로운 것을 만드는 걸 좋아합니다.</p>
       <div class="facts">
-        <div class="fact"><b>사는 곳</b>경기도 성남시 분당구 수내동</div>
-        <div class="fact"><b>지금 하는 일</b>위성 개발</div>
-        <div class="fact"><b>좋아하는 것</b>새로운 것 만들기, AI 공부</div>
+        <div class="fact home">
+          <div class="fact-icon" aria-hidden="true">
+            <!-- 집 + 위치 핀 -->
+            <svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 15 14 6l10 9" />
+              <path d="M7 13v13h14V13" fill="#fff" fill-opacity=".2" />
+              <path d="M12 26v-6h4v6" />
+              <path d="M25 4.5a3.5 3.5 0 0 1 3.5 3.5c0 2.6-3.5 6-3.5 6s-3.5-3.4-3.5-6A3.5 3.5 0 0 1 25 4.5Z" fill="#fde68a" stroke="#fff" stroke-width="1.5" />
+              <circle cx="25" cy="8" r="1.1" fill="#fff" stroke="none" />
+            </svg>
+          </div>
+          <b>사는 곳</b>경기도 성남시 분당구 수내동
+        </div>
+        <div class="fact work">
+          <div class="fact-icon" aria-hidden="true">
+            <!-- 위성 -->
+            <svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <g transform="rotate(-35 16 16)">
+                <rect x="2" y="13" width="8" height="6" rx="1" fill="#fff" fill-opacity=".25" />
+                <rect x="22" y="13" width="8" height="6" rx="1" fill="#fff" fill-opacity=".25" />
+                <path d="M6 13v6M26 13v6M10 16h2M20 16h2" />
+                <rect x="12" y="11" width="8" height="10" rx="1.5" fill="#fde68a" />
+              </g>
+              <path d="M22 24a5 5 0 0 0 4-4M23 28a9 9 0 0 0 7-7" stroke-width="1.6" />
+            </svg>
+          </div>
+          <b>지금 하는 일</b>위성 개발
+        </div>
+        <div class="fact like">
+          <div class="fact-icon" aria-hidden="true">
+            <!-- 전구 + 반짝임 -->
+            <svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 5a8 8 0 0 0-4.5 14.6c.9.7 1.5 1.6 1.5 2.7V23h6v-.7c0-1.1.6-2 1.5-2.7A8 8 0 0 0 16 5Z" fill="#fde68a" />
+              <path d="M13 27h6M14 23v-4l2-2 2 2v4" stroke-width="1.6" />
+              <path d="M27 5v4M25 7h4M5 9v3M3.5 10.5h3" stroke-width="1.6" />
+            </svg>
+          </div>
+          <b>좋아하는 것</b>새로운 것 만들기, AI 공부
+        </div>
       </div>
     </section>
 
@@ -381,11 +500,15 @@
       <ul class="timeline">
         <li>
           <div class="when">현재</div>
-          <div><h3>LIG Defense &amp; Aerospace</h3><p>위성 개발</p></div>
+          <div><h3><a class="org-link" href="https://www.ligdefenseaerospace.com/" target="_blank" rel="noopener">LIG Defense &amp; Aerospace</a></h3><p>위성 개발</p></div>
         </li>
         <li>
           <div class="when">1996 입학</div>
-          <div><h3>아주대학교</h3><p>학사</p></div>
+          <div><h3><a class="org-link" href="https://www.ajou.ac.kr/" target="_blank" rel="noopener"><span class="school-logo"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Logo_of_Ajou_University.png" alt="" /></span>아주대학교</a></h3><p>기계공학과 전공 · 컴퓨터공학 부전공</p></div>
+        </li>
+        <li>
+          <div class="when"></div>
+          <div><h3><a class="org-link" href="https://www.knou.ac.kr/" target="_blank" rel="noopener"><span class="school-logo"><img src="https://upload.wikimedia.org/wikipedia/ko/3/36/%ED%95%9C%EA%B5%AD%EB%B0%A9%EC%86%A1%ED%86%B5%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90_%EB%A1%9C%EA%B3%A0.png" alt="" /></span>한국방송통신대학교</a></h3><p>경영학과 · 메카트로닉스 전공</p></div>
         </li>
       </ul>
     </section>
@@ -412,31 +535,31 @@
 
       <div class="projects">
         <!-- 천궁 -->
-        <div class="card">
+        <div class="card" data-key="cheongung">
           <div class="thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/M-SAM_Block-2_battery.jpg/960px-M-SAM_Block-2_battery.jpg" alt="천궁-II 포대(다기능 레이더와 발사대)" loading="lazy" /></div>
           <div class="card-body"><h3>천궁</h3><p>적 항공기와 탄도미사일을 요격하는 국산 중거리 지대공 유도무기 체계</p><small>사업 참여</small></div>
         </div>
 
         <!-- 해궁 -->
-        <div class="card">
+        <div class="card" data-key="haegung">
           <div class="thumb fit"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/K-SAAM_mockup_at_IDEX_2015.jpg/960px-K-SAAM_mockup_at_IDEX_2015.jpg" alt="" aria-hidden="true" class="bg" loading="lazy" /><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/K-SAAM_mockup_at_IDEX_2015.jpg/960px-K-SAAM_mockup_at_IDEX_2015.jpg" alt="해궁(K-SAAM) 유도탄 모형 전체" loading="lazy" /></div>
           <div class="card-body"><h3>해궁</h3><p>함정을 향해 날아오는 대함미사일과 항공기를 막는 함정용 근거리 대공 유도무기</p><small>사업 참여</small></div>
         </div>
 
         <!-- REDEYE: 2.75인치 로켓 -->
-        <div class="card">
+        <div class="card" data-key="redeye">
           <div class="thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Sgt._Brian_Boe_loads_a_2.75-inch_rocket_with_a_practice_warhead_into_an_M-260_rocket_pod_mounted_on_an_OV-10_Bronco_aircraft_during_the_Pacific_Air_Forces_%28PACAF%29_combat_ammunition_production_and_combat_aircraft_DF-ST-91-07824.jpg/960px-thumbnail.jpg" alt="2.75인치 로켓을 장전하는 모습" loading="lazy" /></div>
           <div class="card-body"><h3>REDEYE</h3><p>기존 2.75인치 로켓에 유도 기능을 더해 정밀 타격이 가능하도록 한 유도로켓</p><small>사업 참여 · 2.75인치 미사일</small></div>
         </div>
 
-        <!-- GK5: 천리안위성 2호 -->
-        <div class="card">
+        <!-- GK5: 천리안위성 5호 -->
+        <div class="card" data-key="gk5">
           <div class="thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/%EC%B2%9C%EB%A6%AC%EC%95%88%EC%9C%84%EC%84%B1_2B%ED%98%B8_%282%29_%281262%29.jpeg/960px-%EC%B2%9C%EB%A6%AC%EC%95%88%EC%9C%84%EC%84%B1_2B%ED%98%B8_%282%29_%281262%29.jpeg" alt="천리안위성 2B호(천리안위성 5호의 이전 세대 위성)" loading="lazy" /></div>
           <div class="card-body"><h3>GK5</h3><p>2031년 발사 예정인 차세대 정지궤도 기상·우주기상 위성, 천리안위성 5호 (천리안위성 2A호 후속기)</p><small>사업 참여 · 천리안위성 5호</small></div>
         </div>
 
         <!-- KPS: 위성항법 -->
-        <div class="card">
+        <div class="card" data-key="kps">
           <div class="thumb">
             <svg viewBox="0 0 320 180" role="img" aria-label="지구 궤도를 도는 항법 위성들">
               <rect width="320" height="180" fill="#050816" />
@@ -493,6 +616,20 @@
       </div>
     </section>
   </main>
+
+  <!-- 프로젝트 상세 팝업 -->
+  <dialog class="pj-modal" id="pjModal" aria-labelledby="pjTitle">
+    <div class="pj-media" id="pjMedia"></div>
+    <div class="pj-content">
+      <button class="pj-close" id="pjClose" aria-label="닫기">✕</button>
+      <span class="pj-kicker" id="pjKicker"></span>
+      <h3 id="pjTitle"></h3>
+      <p class="pj-summary" id="pjSummary"></p>
+      <dl class="pj-facts" id="pjFacts"></dl>
+      <p class="pj-note" id="pjNote"></p>
+      <p class="pj-src" id="pjSrc"></p>
+    </div>
+  </dialog>
 
   <footer>© <span id="year"></span> 박원용. All rights reserved.</footer>
 
@@ -593,6 +730,125 @@
     }
     aimSatellite();
     addEventListener('resize', aimSatellite);
+
+    // 프로젝트 상세 팝업 (내용: 위키백과 등 공개 자료를 참고해 요약)
+    const PROJECTS = {
+      cheongung: {
+        kicker: 'KM-SAM · 중거리 지대공 유도무기',
+        title: '천궁',
+        summary: '적 항공기와 탄도미사일을 막기 위해 국내 기술로 개발한 중거리 지대공 유도무기 체계입니다. 다기능 레이더, 교전통제소, 차량형 발사대로 포대를 이루며, 천궁-II(Block-II)부터는 탄도탄 요격 능력까지 갖췄습니다. 중동 여러 나라에 수출되며 대표적인 K-방산 무기로 자리 잡았습니다.',
+        facts: [
+          ['개발', '국방과학연구소 주관, LIG넥스원·한화에어로스페이스 등 참여'],
+          ['개발 기간', 'Block-I 2001~2011년, Block-II 2012~2017년'],
+          ['배치', '2015년 공군 납품 시작, 2020년 천궁-II 첫 인도'],
+          ['성능', '사거리 약 40~50km, 최고 속도 마하 4.5 이상'],
+          ['유도 방식', '관성 유도(데이터링크 갱신) + 종말 능동 레이더 유도'],
+          ['수출', '아랍에미리트, 사우디아라비아, 이라크'],
+        ],
+        sources: [['위키백과: 천궁 (미사일)', 'https://ko.wikipedia.org/wiki/천궁_(미사일)']],
+      },
+      haegung: {
+        kicker: 'K-SAAM · 함대공 유도무기',
+        title: '해궁',
+        summary: '함정을 향해 빠르게 날아오는 대함미사일과 항공기를 요격하기 위한 함정용 근거리 대공 유도무기입니다. 수직발사대(KVLS)에서 발사되어 사방에서 오는 위협에 대응할 수 있고, 적외선 영상 탐색기와 레이더 탐색기를 함께 쓰는 이중 탐색 방식으로 정확도를 높였습니다.',
+        facts: [
+          ['개발', '국방과학연구소 주관, LIG넥스원 등 참여'],
+          ['개발 기간', '2011~2018년'],
+          ['배치', '2021년부터 해군 함정 탑재'],
+          ['발사 방식', 'KVLS 수직발사대 (발사관 1개당 4발 수납)'],
+          ['유도 방식', '관성 유도 + 적외선 영상/초고주파 이중 탐색기'],
+          ['탑재 함정', '대구급 호위함 등'],
+        ],
+        sources: [['위키백과: 해궁', 'https://ko.wikipedia.org/wiki/해궁']],
+      },
+      redeye: {
+        kicker: '2.75인치(70mm) 유도로켓',
+        title: 'REDEYE',
+        summary: '2.75인치(70mm) 로켓은 헬기와 항공기에 널리 쓰이는 대표적인 무유도 로켓입니다. 여기에 탐색기와 조종 장치를 더해 목표를 정밀하게 맞힐 수 있게 한 것이 유도로켓으로, 값비싼 대전차 미사일보다 훨씬 저렴하게 소형 표적을 정밀 타격할 수 있다는 장점이 있습니다.',
+        facts: [
+          ['기반', '2.75인치(70mm) 로켓 (예: 미국 Hydra 70)'],
+          ['특징', '기존 로켓 발사대와 호환, 저비용 정밀 타격'],
+          ['발사 플랫폼', '공격·기동 헬기, 경공격기, 차량 등'],
+          ['유사 체계', '미국 APKWS(레이저 유도), 국산 비궁(적외선 유도)'],
+        ],
+        note: '※ 위 내용은 2.75인치 유도로켓에 대한 일반적인 설명입니다.',
+        sources: [['위키백과: 히드라 70', 'https://ko.wikipedia.org/wiki/하이드라_70'], ['위키백과: 비궁', 'https://ko.wikipedia.org/wiki/비궁']],
+      },
+      gk5: {
+        kicker: 'GK5 · 정지궤도 기상위성',
+        title: '천리안위성 5호',
+        summary: '천리안위성 2A호의 뒤를 잇는 차세대 정지궤도 기상·우주기상 위성입니다. 적도 상공 약 36,000km에 머물며 한반도와 주변 지역의 날씨를 24시간 관측해, 집중호우·태풍 같은 위험 기상을 더 빨리 탐지하고 예보 정확도를 높이는 것이 목표입니다. 국내 첫 민간 주관 정지궤도 위성 개발 사업이기도 합니다.',
+        facts: [
+          ['임무', '기상 및 우주기상 상시 관측'],
+          ['궤도', '정지궤도 (고도 약 36,000km)'],
+          ['발사 예정', '2031년'],
+          ['체계 개발', 'LIG넥스원 (기상청·우주항공청 협약)'],
+          ['선행 위성', '천리안 1호(2010), 2A호(2018), 2B호(2020)'],
+        ],
+        sources: [['위키백과: 천리안위성', 'https://ko.wikipedia.org/wiki/천리안위성'], ['LIG넥스원 보도자료', 'https://www.lignex1.com/news/nex1newsView.do?bbs_no=7236']],
+      },
+      kps: {
+        kicker: 'Korean Positioning System',
+        title: 'KPS 한국형 위성항법시스템',
+        summary: '미국 GPS에 대한 의존을 줄이고, 한반도 주변에 cm급의 초정밀 위치·항법·시각 정보를 제공하기 위해 개발 중인 우리나라 독자 위성항법시스템입니다. 교통, 통신, 금융, 국방, 농업, 재난 대응 등 위치 정보가 필요한 거의 모든 분야에 활용될 예정입니다.',
+        facts: [
+          ['위성 구성', '총 8기 (정지궤도 3기 + 경사궤도 5기)'],
+          ['사업 착수', '2022년'],
+          ['일정', '2027년 첫 위성 발사 예정, 2035년 본 서비스 목표'],
+          ['예산', '약 3조 7천억 원'],
+          ['주관', '우주항공청, 한국항공우주연구원'],
+        ],
+        sources: [['위키백과: 한국형 위성항법시스템', 'https://ko.wikipedia.org/wiki/한국형_위성_항법시스템']],
+      },
+    };
+
+    const pjModal = document.getElementById('pjModal');
+    const pjMedia = document.getElementById('pjMedia');
+    const pjSet = (id, text) => { document.getElementById(id).textContent = text || ''; };
+
+    function openProject(card) {
+      const p = PROJECTS[card.dataset.key];
+      if (!p) return;
+      const thumb = card.querySelector('.thumb');
+      pjMedia.replaceChildren(...[...thumb.children].map((n) => n.cloneNode(true)));
+      pjMedia.querySelectorAll('img').forEach((img) => { img.loading = 'eager'; });
+      pjMedia.classList.toggle('fit', thumb.classList.contains('fit'));
+      pjSet('pjKicker', p.kicker);
+      pjSet('pjTitle', p.title);
+      pjSet('pjSummary', p.summary);
+      pjSet('pjNote', p.note);
+      const dl = document.getElementById('pjFacts');
+      dl.replaceChildren();
+      for (const [k, v] of p.facts) {
+        const dt = document.createElement('dt'); dt.textContent = k;
+        const dd = document.createElement('dd'); dd.textContent = v;
+        dl.append(dt, dd);
+      }
+      const src = document.getElementById('pjSrc');
+      src.replaceChildren('참고: ');
+      p.sources.forEach(([label, url], i) => {
+        const a = document.createElement('a');
+        a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = label;
+        if (i) src.append(' · ');
+        src.append(a);
+      });
+      pjModal.showModal();
+      pjModal.scrollTop = 0;
+    }
+
+    document.querySelectorAll('.card[data-key] .thumb').forEach((thumb) => {
+      const card = thumb.closest('.card');
+      thumb.tabIndex = 0;
+      thumb.setAttribute('role', 'button');
+      thumb.setAttribute('aria-label', card.querySelector('h3').textContent + ' 자세히 보기');
+      thumb.addEventListener('click', () => openProject(card));
+      thumb.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProject(card); }
+      });
+    });
+    document.getElementById('pjClose').addEventListener('click', () => pjModal.close());
+    // 바깥(배경) 클릭 시 닫기
+    pjModal.addEventListener('click', (e) => { if (e.target === pjModal) pjModal.close(); });
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
