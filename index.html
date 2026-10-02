@@ -83,8 +83,15 @@
     }
     .stars { position: absolute; inset: 0; width: 100%; height: 100%; }
     .stars circle { fill: #fff; }
-    .stars .tw { animation: twinkle 4s ease-in-out infinite; }
+    .stars .tw { animation: twinkle var(--d, 4s) ease-in-out var(--delay, 0s) infinite; }
     @keyframes twinkle { 50% { opacity: .15; } }
+    /* 밝은 별: 십자 빛살이 커졌다 작아지며 반짝 */
+    .stars .spark { transform-box: fill-box; transform-origin: center; filter: drop-shadow(0 0 3px rgba(199, 210, 254, .9)); animation: sparkle var(--d, 5s) ease-in-out var(--delay, 0s) infinite; }
+    .stars .spark path { fill: #fff; }
+    @keyframes sparkle {
+      0%, 100% { opacity: .25; transform: scale(.35) rotate(0deg); }
+      50%      { opacity: 1;   transform: scale(1)   rotate(45deg); }
+    }
 
     .earth {
       --size: max(1200px, 150vw);
@@ -92,8 +99,6 @@
       width: var(--size); height: var(--size); transform: translateX(-50%);
     }
     .earth svg { width: 100%; height: 100%; overflow: visible; }
-    .earth .clouds { transform-origin: 500px 500px; animation: spin 400s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
     .beam { position: absolute; inset: 0; width: 100%; height: 100%; }
     .beam polygon { animation: pulse 3s ease-in-out infinite; }
@@ -133,12 +138,6 @@
     .hero h1 span { color: #a5b4fc; }
     .hero p { color: #cbd5e1; }
     .hero .btn:not(.primary) { color: var(--text); text-shadow: none; }
-    .avatar {
-      width: 96px; height: 96px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), #ec4899);
-      display: grid; place-items: center;
-      color: #fff; font-size: 36px; font-weight: 800; margin-bottom: 28px;
-    }
     .hero h1 { font-size: clamp(32px, 6vw, 52px); line-height: 1.2; letter-spacing: -0.03em; font-weight: 800; }
     .hero p { margin-top: 20px; font-size: 18px; max-width: 560px; }
     .cta { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
@@ -464,7 +463,7 @@
     .reveal.show { opacity: 1; transform: none; }
     @media (prefers-reduced-motion: reduce) {
       .reveal { opacity: 1; transform: none; transition: none; }
-      .satellite, .earth .clouds, .beam polygon, .stars .tw, .thumb .trail, .thumb .tw, .fact:hover .fact-icon svg { animation: none; }
+      .satellite, .beam polygon, .stars .tw, .stars .spark,.thumb .trail, .thumb .tw, .fact:hover .fact-icon svg { animation: none; }
       html { scroll-behavior: auto; }
     }
 
@@ -514,23 +513,13 @@
             <stop offset="1" stop-color="#000814" stop-opacity=".25" />
           </linearGradient>
           <clipPath id="globe"><circle cx="500" cy="500" r="500" /></clipPath>
-          <filter id="soft"><feGaussianBlur stdDeviation="6" /></filter>
         </defs>
 
         <circle cx="500" cy="500" r="560" fill="url(#atmo)" />
         <circle cx="500" cy="500" r="500" fill="url(#ocean)" />
         <g clip-path="url(#globe)">
-          <g fill="#3f8f5a" opacity=".9">
-            <path d="M330 120 C360 80 430 70 470 95 C500 115 490 150 455 165 C420 180 400 210 360 205 C320 200 300 160 330 120Z" />
-            <path d="M560 40 C600 25 660 45 670 80 C680 110 640 120 620 140 C600 160 560 150 550 120 C540 90 530 55 560 40Z" />
-            <path d="M700 150 C740 130 800 150 820 190 C835 220 790 235 750 225 C715 215 690 180 700 150Z" />
-            <path d="M170 200 C200 170 250 175 260 205 C270 230 230 250 195 240 C170 232 155 220 170 200Z" />
-          </g>
-          <g fill="#c2a36b" opacity=".45">
-            <path d="M600 70 C625 62 645 75 640 95 C632 112 605 110 598 92Z" />
-            <path d="M360 130 C380 118 410 125 405 145 C398 160 370 160 360 148Z" />
-          </g>
-          <g class="clouds" id="clouds" fill="#fff" opacity=".55" filter="url(#soft)"></g>
+          <!-- 실제 지구 사진 (NASA 아폴로 17호, 퍼블릭 도메인) — 화면엔 윗부분만 보여 위쪽 띠만 사용 -->
+          <image href="images/earth.jpg" x="0" y="0" width="1000" height="250" preserveAspectRatio="none" />
           <rect width="1000" height="1000" fill="url(#night)" />
         </g>
       </svg>
@@ -612,7 +601,6 @@
   <main class="wrap">
     <!-- 히어로 -->
     <section class="hero reveal">
-      <div class="avatar">박</div>
       <h1>안녕하세요,<br />저는 <span>박원용</span>입니다.</h1>
       <p>아내와 두 딸을 둔 한 가정의 가장으로, 열심히 회사 생활을 하고 있습니다.</p>
       <div class="cta">
@@ -947,25 +935,29 @@
         r: (Math.random() * 1.1 + 0.3).toFixed(2),
         opacity: (Math.random() * 0.6 + 0.3).toFixed(2),
       });
-      if (Math.random() < 0.3) {
+      if (Math.random() < 0.7) {
         c.classList.add('tw');
-        c.style.animationDelay = (Math.random() * 4).toFixed(2) + 's';
+        c.style.setProperty('--d', (2.5 + Math.random() * 3.5).toFixed(2) + 's');
+        c.style.setProperty('--delay', (-Math.random() * 6).toFixed(2) + 's');
       }
       stars.append(c);
     }
-
-    // 구름은 지구 가장자리 근처를 따라 천천히 회전
-    const clouds = document.getElementById('clouds');
-    for (let i = 0; i < 28; i++) {
-      const a = (i / 28) * Math.PI * 2 + Math.random() * 0.2;
-      const r = 400 + Math.random() * 90;
-      clouds.append(svgEl('ellipse', {
-        cx: (500 + Math.cos(a) * r).toFixed(1),
-        cy: (500 + Math.sin(a) * r).toFixed(1),
-        rx: (40 + Math.random() * 60).toFixed(1),
-        ry: (10 + Math.random() * 12).toFixed(1),
-        transform: `rotate(${(a * 180 / Math.PI + 90).toFixed(1)} ${(500 + Math.cos(a) * r).toFixed(1)} ${(500 + Math.sin(a) * r).toFixed(1)})`,
-      }));
+    // 밝은 별 몇 개는 십자 빛살로 반짝임
+    for (let i = 0; i < 16; i++) {
+      const pos = svgEl('svg', {
+        x: (Math.random() * 100).toFixed(2) + '%',
+        y: (Math.random() * 70).toFixed(2) + '%',
+        overflow: 'visible',
+      });
+      const g = svgEl('g', { class: 'spark' });
+      const s = 4 + Math.random() * 4;   // 빛살 길이
+      const k = s * 0.18;                // 가운데 두께
+      g.append(svgEl('path', { d: `M0 ${-s} L${k} ${-k} L${s} 0 L${k} ${k} L0 ${s} L${-k} ${k} L${-s} 0 L${-k} ${-k}Z` }));
+      g.append(svgEl('circle', { r: (k * 1.2).toFixed(2) }));
+      g.style.setProperty('--d', (3 + Math.random() * 4).toFixed(2) + 's');
+      g.style.setProperty('--delay', (-Math.random() * 7).toFixed(2) + 's');
+      pos.append(g);
+      stars.append(pos);
     }
 
     const sat = document.getElementById('satellite');
