@@ -336,7 +336,7 @@
     .sc-empty { font-size: 14px; color: var(--muted); padding: 4px 2px; }
     .sc-form { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 8px; margin-top: 14px; }
     .sc-range { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-    .sc-range label { display: flex; align-items: center; gap: 6px; }
+    .sc-when { display: flex; align-items: center; gap: 6px; }
     .sc-form .sc-range input { width: auto; }
     .sc-form[hidden], .sc-form [hidden] { display: none; }
     .sc-form input, .sc-login input {
@@ -745,10 +745,15 @@
         <!-- 편집자에게만 보이는 일정 작성 폼 -->
         <form class="sc-form" id="scForm" hidden>
           <div class="sc-range">
-            <label>시작일 <input id="scStart" type="date" required /></label>
+            <span class="sc-when">시작
+              <input id="scStart" type="date" aria-label="시작일" required />
+              <input id="scTime" type="time" aria-label="시작 시간 (선택)" />
+            </span>
             <span aria-hidden="true">~</span>
-            <label>종료일 <input id="scEnd" type="date" required /></label>
-            <input id="scTime" type="time" aria-label="시간 (선택)" />
+            <span class="sc-when">종료
+              <input id="scEnd" type="date" aria-label="종료일" required />
+              <input id="scEndTime" type="time" aria-label="종료 시간 (선택)" />
+            </span>
           </div>
           <input id="scTitle" type="text" placeholder="일정 제목" maxlength="60" required />
           <input id="scMemo" type="text" placeholder="메모 (선택)" maxlength="300" />
@@ -1178,7 +1183,8 @@
     const $ = (id) => document.getElementById(id);
     const scGrid = $('scGrid'), scList = $('scList'), scForm = $('scForm');
     const scStart = $('scStart'), scEnd = $('scEnd');
-    const scTime = $('scTime'), scTitle = $('scTitle'), scMemo = $('scMemo');
+    const scTime = $('scTime'), scEndTime = $('scEndTime'), scTitle = $('scTitle'), scMemo = $('scMemo');
+    const hm = (t) => (t ? t.slice(0, 5) : '');
     const scSave = $('scSave'), scCancel = $('scCancel'), scStatus = $('scStatus');
     const scAuthBtn = $('scAuthBtn'), scLogin = $('scLogin');
 
@@ -1202,7 +1208,7 @@
       const [start, end] = gridRange();
       const { data, error } = await db
         .from('schedules')
-        .select('id, date, end_date, time, title, memo')
+        .select('id, date, end_date, time, end_time, title, memo')
         .lte('date', ymd(end)).gte('end_date', ymd(start))   // 달력 범위와 겹치는 일정
         .order('date').order('time', { ascending: true, nullsFirst: true });
       events = {};
@@ -1289,14 +1295,20 @@
         const li = document.createElement('li');
         li.className = 'sc-item';
         const t = document.createElement('time');
-        t.textContent = e.time ? e.time.slice(0, 5) : '종일';
+        // 왼쪽 시간: 시작일엔 시작 시간, 마지막 날엔 종료 시간, 중간 날은 종일
+        t.textContent = selDate === e.date && e.time ? hm(e.time)
+          : selDate === e.end_date && e.end_time ? `~${hm(e.end_time)}`
+          : '종일';
         const body = document.createElement('div');
         const title = document.createElement('b');
         title.textContent = e.title;
         body.append(title);
-        if (e.end_date !== e.date) {
+        const multi = e.end_date !== e.date;
+        if (multi || e.end_time) {
           const range = document.createElement('small');
-          range.textContent = `${mdLabel(e.date)} ~ ${mdLabel(e.end_date)}`;
+          const from = multi ? `${mdLabel(e.date)} ${hm(e.time)}`.trim() : hm(e.time);
+          const to = multi ? `${mdLabel(e.end_date)} ${hm(e.end_time)}`.trim() : hm(e.end_time);
+          range.textContent = `${from} ~ ${to}`.trim();
           body.append(range);
         }
         if (e.memo) { const memo = document.createElement('small'); memo.textContent = e.memo; body.append(memo); }
@@ -1338,7 +1350,8 @@
       scStart.value = e.date;
       scEnd.value = e.end_date;
       scEnd.min = e.date;
-      scTime.value = e.time ? e.time.slice(0, 5) : '';
+      scTime.value = hm(e.time);
+      scEndTime.value = hm(e.end_time);
       scTitle.value = e.title;
       scMemo.value = e.memo || '';
       scSave.textContent = '수정 저장';
@@ -1360,8 +1373,10 @@
       if (!title) return;
       const date = scStart.value, end_date = scEnd.value;
       if (!date || !end_date) return;
+      const time = scTime.value || null, end_time = scEndTime.value || null;
       if (end_date < date) { scStatus.textContent = '종료일이 시작일보다 빨라요.'; return; }
-      const row = { date, end_date, time: scTime.value || null, title, memo: scMemo.value.trim() || null };
+      if (end_date === date && time && end_time && end_time < time) { scStatus.textContent = '종료 시간이 시작 시간보다 빨라요.'; return; }
+      const row = { date, end_date, time, end_time, title, memo: scMemo.value.trim() || null };
       scSave.disabled = true;
       scStatus.textContent = '저장 중…';
       const { error } = editingId

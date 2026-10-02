@@ -40,11 +40,14 @@ create table if not exists public.schedules (
   id         bigint generated always as identity primary key,
   date       date not null,                -- 시작일
   end_date   date not null,                -- 종료일 (하루 일정이면 시작일과 같음)
-  time       time,
+  time       time,                         -- 시작 시간 (없으면 종일)
+  end_time   time,                         -- 종료 시간 (선택)
   title      text not null check (char_length(title) between 1 and 60),
   memo       text check (memo is null or char_length(memo) <= 300),
   created_at timestamptz not null default now(),
-  constraint schedules_end_after_start check (end_date >= date)
+  constraint schedules_end_after_start check (end_date >= date),
+  constraint schedules_end_time_after_start
+    check (end_date > date or time is null or end_time is null or end_time >= time)
 );
 
 create index if not exists schedules_date_idx on public.schedules (date);
