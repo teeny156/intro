@@ -187,6 +187,29 @@
     }
 
     /* 경력 */
+    /* 경력 배경: 판교하우스(왼쪽) + 아주대학교(오른쪽)를 가운데서 부드럽게 섞음 */
+    #experience { position: relative; overflow: hidden; isolation: isolate; }
+    #experience::before, #experience::after {
+      content: ""; position: absolute; inset: 0; z-index: -2;
+      background-size: cover; background-repeat: no-repeat;
+    }
+    #experience::before {
+      background-image: url("images/pangyo-house.jpg"); background-position: 30% 35%; right: 35%;
+      -webkit-mask-image: linear-gradient(to right, #000 55%, transparent);
+      mask-image: linear-gradient(to right, #000 55%, transparent);
+    }
+    #experience::after {
+      background-image: url("images/ajou.jpg"); background-position: 70% 45%; left: 35%;
+      -webkit-mask-image: linear-gradient(to left, #000 55%, transparent);
+      mask-image: linear-gradient(to left, #000 55%, transparent);
+    }
+    #experience > .exp-veil {
+      position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background: linear-gradient(100deg,
+        color-mix(in srgb, var(--surface) 80%, transparent) 0%,
+        color-mix(in srgb, var(--surface) 70%, transparent) 50%,
+        color-mix(in srgb, var(--surface) 50%, transparent) 100%);
+    }
     .timeline { list-style: none; }
     .timeline li { display: grid; grid-template-columns: 130px 1fr; gap: 20px; padding: 18px 0; border-top: 1px dashed var(--line); }
     .timeline li:first-child { border-top: none; }
@@ -654,6 +677,7 @@
 
     <!-- 경력 -->
     <section id="experience" class="reveal">
+      <div class="exp-veil" aria-hidden="true"></div>
       <h2>Experience</h2>
       <ul class="timeline">
         <li>
