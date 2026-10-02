@@ -49,7 +49,7 @@
     }
     a { color: inherit; text-decoration: none; }
 
-    .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
 
     /* 상단 바 */
     header {
@@ -105,7 +105,7 @@
     .satellite .blink { animation: twinkle 1.6s steps(2) infinite; }
 
     section {
-      padding: 56px 40px; margin-bottom: 24px; border-radius: 20px;
+      padding: 48px 48px; margin-bottom: 24px; border-radius: 20px;
       background: color-mix(in srgb, var(--surface) 80%, transparent);
       border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -197,7 +197,7 @@
     .timeline p { color: var(--muted); font-size: 15px; }
 
     /* 프로젝트 */
-    .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .projects { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
     .card {
       background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
       transition: transform .2s, border-color .2s, box-shadow .2s;
@@ -272,6 +272,100 @@
     .card p { font-size: 14px; color: var(--muted); margin-bottom: 10px; line-height: 1.6; }
     .card small { display: block; font-size: 12px; color: var(--accent); font-weight: 600; }
 
+    /* 일정 (달력) */
+    .sc-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .sc-head h2 { margin-bottom: 0; }
+    .sc-auth {
+      font: inherit; font-size: 13px; color: var(--muted); cursor: pointer;
+      background: none; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px;
+    }
+    .sc-auth:hover { color: var(--accent); border-color: var(--accent); }
+    .sc-auth.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .sc-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .sc-month { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; min-width: 130px; text-align: center; }
+    .sc-nav, .sc-today {
+      height: 34px; min-width: 34px; padding: 0 10px; border-radius: 8px; cursor: pointer;
+      font: inherit; font-size: 15px; color: var(--text); background: var(--surface); border: 1px solid var(--line);
+    }
+    .sc-today { margin-left: auto; font-size: 13px; }
+    .sc-nav:hover, .sc-today:hover { border-color: var(--accent); color: var(--accent); }
+    .sc-week, .sc-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .sc-week span { text-align: center; font-size: 12px; font-weight: 600; color: var(--muted); padding: 6px 0; }
+    .sc-week span:first-child, .sc-cell.sun .sc-num { color: #ef4444; }
+    .sc-week span:last-child, .sc-cell.sat .sc-num { color: #3b82f6; }
+    .sc-grid { gap: 4px; }
+    .sc-cell {
+      min-height: 86px; padding: 6px; border-radius: 10px; text-align: left; cursor: pointer;
+      font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line);
+      display: flex; flex-direction: column; gap: 3px; overflow: hidden; transition: border-color .15s, background .15s;
+    }
+    .sc-cell:hover { border-color: var(--accent); }
+    .sc-cell.other { opacity: .4; }
+    .sc-cell.sel { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+    .sc-num { font-size: 13px; font-weight: 700; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; }
+    .sc-cell.today .sc-num { background: var(--accent); color: #fff !important; }
+    .sc-chip {
+      font-size: 11.5px; line-height: 1.5; padding: 0 6px; border-radius: 5px;
+      background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sc-more { font-size: 11px; color: var(--muted); padding-left: 4px; }
+    .sc-dots { display: none; gap: 3px; padding-left: 4px; }
+    .sc-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+    .sc-day { margin-top: 20px; padding: 18px 20px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+    .sc-day-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+    .sc-day-head h3 { font-size: 17px; }
+    .sc-status { font-size: 13px; color: var(--muted); }
+    .sc-list { list-style: none; display: grid; gap: 6px; }
+    .sc-item {
+      display: grid; grid-template-columns: 56px 1fr auto; gap: 10px; align-items: baseline;
+      padding: 9px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 14.5px;
+    }
+    .sc-item time { font-size: 13px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .sc-item small { display: block; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+    .sc-item b { font-weight: 600; overflow-wrap: anywhere; }
+    .sc-acts { display: flex; gap: 4px; }
+    .sc-acts button {
+      font: inherit; font-size: 12px; padding: 3px 8px; border-radius: 6px; cursor: pointer;
+      background: var(--surface); color: var(--muted); border: 1px solid var(--line);
+    }
+    .sc-acts button:hover { color: var(--accent); border-color: var(--accent); }
+    .sc-acts button.del:hover { color: #ef4444; border-color: #ef4444; }
+    .sc-empty { font-size: 14px; color: var(--muted); padding: 4px 2px; }
+    .sc-form { display: grid; grid-template-columns: 120px 1fr 1fr auto auto; gap: 8px; margin-top: 14px; }
+    .sc-form[hidden], .sc-form [hidden] { display: none; }
+    .sc-form input, .sc-login input {
+      width: 100%; font: inherit; font-size: 14px; color: var(--text); background: var(--surface);
+      border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; outline: none;
+    }
+    .sc-form input:focus, .sc-login input:focus { border-color: var(--accent); }
+    .sc-form .btn, .sc-login .btn { cursor: pointer; font-family: inherit; padding: 9px 16px; }
+    .sc-form .btn:disabled, .sc-login .btn:disabled { opacity: .5; cursor: default; transform: none; }
+
+    .sc-login {
+      width: min(360px, calc(100% - 32px)); margin: auto; padding: 26px; border-radius: 18px;
+      border: 1px solid var(--line); background: var(--surface); color: var(--text);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+    }
+    .sc-login::backdrop { background: rgba(5, 8, 22, .6); backdrop-filter: blur(4px); }
+    .sc-login form { display: grid; gap: 10px; }
+    .sc-login h3 { font-size: 19px; }
+    .sc-login p { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+    .sc-login-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+
+    @media (max-width: 600px) {
+      .sc-cell { min-height: 52px; padding: 4px; align-items: center; }
+      .sc-chip, .sc-more { display: none; }
+      .sc-dots { display: flex; padding: 0; }
+      .sc-month { font-size: 17px; min-width: 0; }
+      .sc-form { grid-template-columns: 1fr 1fr; }
+      .sc-form #scTitle, .sc-form #scMemo { grid-column: 1 / -1; grid-row: auto; }
+      .sc-form #scTime { grid-column: 1 / -1; }
+      .sc-item { grid-template-columns: 48px 1fr; }
+      .sc-acts { grid-column: 1 / -1; justify-content: flex-end; }
+    }
+
     /* 방명록 */
     .gb-form { display: grid; gap: 10px; margin-bottom: 28px; }
     .gb-form input, .gb-form textarea {
@@ -334,10 +428,10 @@
     }
 
     @media (max-width: 600px) {
-      .wrap { padding: 0 16px; }
+      .wrap { padding: 0 8px; }
       nav a { display: none; }
-      section { padding: 40px 20px; }
-      .hero { padding: 150px 0 110px; }
+      section { padding: 32px 16px; }
+      .hero { padding: 150px 8px 110px; }
       .satellite { width: 120px; left: 70%; top: 76px; }
       .timeline li { grid-template-columns: 1fr; gap: 4px; }
     }
@@ -440,6 +534,7 @@
         <a href="#about">소개</a>
         <a href="#skills">기술</a>
         <a href="#projects">프로젝트</a>
+        <a href="#schedule">일정</a>
         <a href="#guestbook">방명록</a>
         <a href="#contact">연락처</a>
         <button class="theme-btn" id="themeBtn" aria-label="테마 전환">🌙</button>
@@ -617,6 +712,55 @@
         <a href="https://commons.wikimedia.org/wiki/File:%EC%B2%9C%EB%A6%AC%EC%95%88%EC%9C%84%EC%84%B1_2B%ED%98%B8_(2)_(1262).jpeg" target="_blank" rel="noopener">천리안위성 2B호 — 한국항공우주연구원, 공공누리 제1유형</a>
       </p>
     </section>
+
+    <!-- 일정 (보기: 누구나 / 편집: 관리자 로그인) -->
+    <section id="schedule" class="reveal">
+      <div class="sc-head">
+        <h2>Schedule</h2>
+        <button class="sc-auth" id="scAuthBtn" type="button">🔒 관리자 로그인</button>
+      </div>
+      <div class="sc-bar">
+        <button class="sc-nav" id="scPrev" type="button" aria-label="이전 달">‹</button>
+        <strong class="sc-month" id="scMonth" aria-live="polite"></strong>
+        <button class="sc-nav" id="scNext" type="button" aria-label="다음 달">›</button>
+        <button class="sc-today" id="scToday" type="button">오늘</button>
+      </div>
+      <div class="sc-week" aria-hidden="true">
+        <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+      </div>
+      <div class="sc-grid" id="scGrid" role="grid" aria-label="달력"></div>
+
+      <div class="sc-day">
+        <div class="sc-day-head">
+          <h3 id="scDayTitle"></h3>
+          <span class="sc-status" id="scStatus"></span>
+        </div>
+        <ul class="sc-list" id="scList"></ul>
+        <!-- 관리자만 보이는 일정 작성 폼 -->
+        <form class="sc-form" id="scForm" hidden>
+          <input id="scTime" type="time" aria-label="시간 (선택)" />
+          <input id="scTitle" type="text" placeholder="일정 제목" maxlength="60" required />
+          <input id="scMemo" type="text" placeholder="메모 (선택)" maxlength="300" />
+          <button class="btn primary" id="scSave" type="submit">추가</button>
+          <button class="btn" id="scCancel" type="button" hidden>취소</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 관리자 로그인 -->
+    <dialog class="sc-login" id="scLogin" aria-labelledby="scLoginTitle">
+      <form id="scLoginForm" method="dialog">
+        <h3 id="scLoginTitle">관리자 로그인</h3>
+        <p>일정 편집은 관리자만 할 수 있어요.</p>
+        <input id="scEmail" type="email" placeholder="이메일" autocomplete="username" required />
+        <input id="scPw" type="password" placeholder="비밀번호" autocomplete="current-password" required />
+        <span class="sc-status" id="scLoginStatus"></span>
+        <div class="sc-login-row">
+          <button class="btn" type="button" id="scLoginCancel">취소</button>
+          <button class="btn primary" type="submit" id="scLoginBtn">로그인</button>
+        </div>
+      </form>
+    </dialog>
 
     <!-- 방명록 -->
     <section id="guestbook" class="reveal">
@@ -1001,6 +1145,222 @@
     });
 
     loadGuestbook();
+
+    // ───────── 일정 관리 (달력) ─────────
+    // 보기는 누구나, 추가·수정·삭제는 관리자 로그인 후에만 (DB의 RLS 정책으로도 강제됨)
+    const ADMIN_EMAIL = 'teeny156@naver.com';
+    const $ = (id) => document.getElementById(id);
+    const scGrid = $('scGrid'), scList = $('scList'), scForm = $('scForm');
+    const scTime = $('scTime'), scTitle = $('scTitle'), scMemo = $('scMemo');
+    const scSave = $('scSave'), scCancel = $('scCancel'), scStatus = $('scStatus');
+    const scAuthBtn = $('scAuthBtn'), scLogin = $('scLogin');
+
+    const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const todayStr = () => ymd(new Date());
+    let view = new Date(); view.setDate(1);   // 표시 중인 달의 1일
+    let selDate = todayStr();                 // 선택한 날짜 (YYYY-MM-DD)
+    let events = {};                          // 날짜 → 일정 배열
+    let isAdmin = false;
+    let editingId = null;
+
+    function gridRange() {
+      const start = new Date(view); start.setDate(1 - view.getDay());
+      const end = new Date(start); end.setDate(start.getDate() + 41);
+      return [start, end];
+    }
+
+    async function loadSchedules() {
+      const [start, end] = gridRange();
+      const { data, error } = await db
+        .from('schedules')
+        .select('id, date, time, title, memo')
+        .gte('date', ymd(start)).lte('date', ymd(end))
+        .order('date').order('time', { ascending: true, nullsFirst: true });
+      events = {};
+      if (error) {
+        scStatus.textContent = '일정을 불러오지 못했어요.';
+        console.error(error);
+      } else {
+        scStatus.textContent = '';
+        for (const e of data) (events[e.date] ||= []).push(e);
+      }
+      renderCalendar();
+      renderDay();
+    }
+
+    function renderCalendar() {
+      $('scMonth').textContent = `${view.getFullYear()}년 ${view.getMonth() + 1}월`;
+      const [start] = gridRange();
+      const today = todayStr();
+      scGrid.replaceChildren();
+      for (let i = 0; i < 42; i++) {
+        const d = new Date(start); d.setDate(start.getDate() + i);
+        const key = ymd(d);
+        const list = events[key] || [];
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.className = 'sc-cell';
+        if (d.getMonth() !== view.getMonth()) cell.classList.add('other');
+        if (d.getDay() === 0) cell.classList.add('sun');
+        if (d.getDay() === 6) cell.classList.add('sat');
+        if (key === today) cell.classList.add('today');
+        if (key === selDate) cell.classList.add('sel');
+        cell.setAttribute('aria-label', `${d.getMonth() + 1}월 ${d.getDate()}일, 일정 ${list.length}개`);
+        const num = document.createElement('span');
+        num.className = 'sc-num';
+        num.textContent = d.getDate();
+        cell.append(num);
+        // 큰 화면: 제목 칩 최대 2개 / 작은 화면: 점
+        list.slice(0, 2).forEach((e) => {
+          const chip = document.createElement('span');
+          chip.className = 'sc-chip';
+          chip.textContent = e.title;
+          cell.append(chip);
+        });
+        if (list.length > 2) {
+          const more = document.createElement('span');
+          more.className = 'sc-more';
+          more.textContent = `+${list.length - 2}`;
+          cell.append(more);
+        }
+        if (list.length) {
+          const dots = document.createElement('span');
+          dots.className = 'sc-dots';
+          for (let k = 0; k < Math.min(list.length, 3); k++) dots.append(document.createElement('i'));
+          cell.append(dots);
+        }
+        cell.addEventListener('click', () => {
+          selDate = key;
+          if (d.getMonth() !== view.getMonth()) { view = new Date(d.getFullYear(), d.getMonth(), 1); loadSchedules(); }
+          else { renderCalendar(); renderDay(); }
+          resetForm();
+        });
+        scGrid.append(cell);
+      }
+    }
+
+    function renderDay() {
+      const [y, m, d] = selDate.split('-').map(Number);
+      const wd = '일월화수목금토'[new Date(y, m - 1, d).getDay()];
+      $('scDayTitle').textContent = `${m}월 ${d}일 (${wd})`;
+      scList.replaceChildren();
+      const list = events[selDate] || [];
+      if (!list.length) {
+        const li = document.createElement('li');
+        li.className = 'sc-empty';
+        li.textContent = isAdmin ? '일정이 없어요. 아래에서 추가해 보세요.' : '등록된 일정이 없어요.';
+        scList.append(li);
+      }
+      for (const e of list) {
+        const li = document.createElement('li');
+        li.className = 'sc-item';
+        const t = document.createElement('time');
+        t.textContent = e.time ? e.time.slice(0, 5) : '종일';
+        const body = document.createElement('div');
+        const title = document.createElement('b');
+        title.textContent = e.title;
+        body.append(title);
+        if (e.memo) { const memo = document.createElement('small'); memo.textContent = e.memo; body.append(memo); }
+        li.append(t, body);
+        if (isAdmin) {
+          const acts = document.createElement('div');
+          acts.className = 'sc-acts';
+          const edit = document.createElement('button');
+          edit.type = 'button'; edit.textContent = '수정';
+          edit.addEventListener('click', () => startEdit(e));
+          const del = document.createElement('button');
+          del.type = 'button'; del.className = 'del'; del.textContent = '삭제';
+          del.addEventListener('click', () => removeSchedule(e));
+          acts.append(edit, del);
+          li.append(acts);
+        }
+        scList.append(li);
+      }
+      scForm.hidden = !isAdmin;
+    }
+
+    function resetForm() {
+      editingId = null;
+      scForm.reset();
+      scSave.textContent = '추가';
+      scCancel.hidden = true;
+    }
+
+    function startEdit(e) {
+      editingId = e.id;
+      scTime.value = e.time ? e.time.slice(0, 5) : '';
+      scTitle.value = e.title;
+      scMemo.value = e.memo || '';
+      scSave.textContent = '수정 저장';
+      scCancel.hidden = false;
+      scTitle.focus();
+    }
+
+    async function removeSchedule(e) {
+      if (!confirm(`'${e.title}' 일정을 삭제할까요?`)) return;
+      const { error } = await db.from('schedules').delete().eq('id', e.id);
+      if (error) { scStatus.textContent = '삭제하지 못했어요.'; console.error(error); return; }
+      resetForm();
+      loadSchedules();
+    }
+
+    scForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const title = scTitle.value.trim();
+      if (!title) return;
+      const row = { date: selDate, time: scTime.value || null, title, memo: scMemo.value.trim() || null };
+      scSave.disabled = true;
+      scStatus.textContent = '저장 중…';
+      const { error } = editingId
+        ? await db.from('schedules').update(row).eq('id', editingId)
+        : await db.from('schedules').insert(row);
+      scSave.disabled = false;
+      if (error) { scStatus.textContent = '저장하지 못했어요. 로그인 상태를 확인해 주세요.'; console.error(error); return; }
+      resetForm();
+      await loadSchedules();
+      scStatus.textContent = '저장했어요 ✓';
+    });
+    scCancel.addEventListener('click', resetForm);
+
+    $('scPrev').addEventListener('click', () => { view.setMonth(view.getMonth() - 1); loadSchedules(); });
+    $('scNext').addEventListener('click', () => { view.setMonth(view.getMonth() + 1); loadSchedules(); });
+    $('scToday').addEventListener('click', () => {
+      view = new Date(); view.setDate(1); selDate = todayStr(); resetForm(); loadSchedules();
+    });
+
+    // 관리자 로그인 / 로그아웃
+    function applyAuth(session) {
+      isAdmin = !!session && session.user.email === ADMIN_EMAIL;
+      scAuthBtn.textContent = isAdmin ? '✏️ 편집 중 · 로그아웃' : '🔒 관리자 로그인';
+      scAuthBtn.classList.toggle('on', isAdmin);
+      if (!isAdmin) resetForm();
+      renderDay();
+    }
+
+    scAuthBtn.addEventListener('click', async () => {
+      if (isAdmin) { await db.auth.signOut(); return; }
+      $('scLoginStatus').textContent = '';
+      $('scLoginForm').reset();
+      scLogin.showModal();
+    });
+    $('scLoginCancel').addEventListener('click', () => scLogin.close());
+    scLogin.addEventListener('click', (e) => { if (e.target === scLogin) scLogin.close(); });
+
+    $('scLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('scLoginBtn'), st = $('scLoginStatus');
+      btn.disabled = true;
+      st.textContent = '로그인 중…';
+      const { data, error } = await db.auth.signInWithPassword({ email: $('scEmail').value.trim(), password: $('scPw').value });
+      btn.disabled = false;
+      if (error) { st.textContent = '이메일 또는 비밀번호가 맞지 않아요.'; return; }
+      if (data.user.email !== ADMIN_EMAIL) { await db.auth.signOut(); st.textContent = '관리자 계정이 아니에요.'; return; }
+      scLogin.close();
+    });
+
+    db.auth.onAuthStateChange((_event, session) => applyAuth(session));
+    db.auth.getSession().then(({ data }) => applyAuth(data.session));
+    loadSchedules();
   </script>
 </body>
 </html>
