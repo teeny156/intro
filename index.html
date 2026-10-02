@@ -165,13 +165,29 @@
     /* 프로젝트 */
     .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
     .card {
-      background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px;
-      transition: transform .2s, border-color .2s;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
     }
-    .card:hover { transform: translateY(-4px); border-color: var(--accent); }
+    .card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 28px rgba(79, 70, 229, .18); }
+    /* 프로젝트 이미지: SVG 일러스트 또는 <img>(실제 사진) 모두 지원 */
+    .thumb { aspect-ratio: 16 / 9; overflow: hidden; background: #071230; border-bottom: 1px solid var(--line); }
+    .thumb svg, .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+    .card:hover .thumb svg, .card:hover .thumb img { transform: scale(1.06); }
+    .thumb .trail { stroke-dasharray: 4 6; animation: dash 1.2s linear infinite; }
+    @keyframes dash { to { stroke-dashoffset: -20; } }
+    .thumb .tw { animation: twinkle 3s ease-in-out infinite; }
+    /* 세로 사진: 전체가 보이도록 contain + 흐린 배경으로 여백 채움 */
+    .thumb.fit { position: relative; }
+    .thumb.fit .bg { position: absolute; inset: 0; filter: blur(18px) brightness(.55); transform: scale(1.3); }
+    .thumb.fit img:not(.bg) { position: relative; object-fit: contain; }
+    .card:hover .thumb.fit .bg { transform: scale(1.38); }
+    .card-body { padding: 16px 20px 18px; }
+    .credits { margin-top: 18px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .credits a { text-decoration: underline; text-underline-offset: 2px; }
+    .credits a:hover { color: var(--accent); }
     .card h3 { font-size: 17px; margin-bottom: 6px; }
-    .card p { font-size: 14px; color: var(--muted); }
-    .card small { display: block; margin-top: 14px; font-size: 12px; color: var(--accent); font-weight: 600; }
+    .card p { font-size: 14px; color: var(--muted); margin-bottom: 10px; line-height: 1.6; }
+    .card small { display: block; font-size: 12px; color: var(--accent); font-weight: 600; }
 
     /* 방명록 */
     .gb-form { display: grid; gap: 10px; margin-bottom: 28px; }
@@ -204,7 +220,7 @@
     .reveal.show { opacity: 1; transform: none; }
     @media (prefers-reduced-motion: reduce) {
       .reveal { opacity: 1; transform: none; transition: none; }
-      .satellite, .earth .clouds, .beam polygon, .stars .tw { animation: none; }
+      .satellite, .earth .clouds, .beam polygon, .stars .tw, .thumb .trail, .thumb .tw { animation: none; }
       html { scroll-behavior: auto; }
     }
 
@@ -377,13 +393,80 @@
     <!-- 프로젝트 -->
     <section id="projects" class="reveal">
       <h2>Projects</h2>
+      <!-- 카드 이미지 공용 그라디언트/심볼 -->
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+          <radialGradient id="pEarth" cx="50%" cy="10%" r="70%">
+            <stop offset="0" stop-color="#5bb4ff" />
+            <stop offset=".5" stop-color="#1d5fbf" />
+            <stop offset="1" stop-color="#061634" />
+          </radialGradient>
+          <symbol id="pSat" viewBox="0 0 40 20">
+            <rect x="0" y="6" width="13" height="8" rx="1" fill="#3b5bdb" stroke="#a5b4fc" stroke-width=".6" />
+            <rect x="27" y="6" width="13" height="8" rx="1" fill="#3b5bdb" stroke="#a5b4fc" stroke-width=".6" />
+            <path d="M13 10h2M25 10h2" stroke="#cbd5e1" stroke-width="1" />
+            <rect x="15" y="3" width="10" height="14" rx="1.5" fill="#f59e0b" />
+          </symbol>
+        </defs>
+      </svg>
+
       <div class="projects">
-        <div class="card"><h3>천궁</h3><small>사업 참여</small></div>
-        <div class="card"><h3>해궁</h3><small>사업 참여</small></div>
-        <div class="card"><h3>REDEYE</h3><small>사업 참여</small></div>
-        <div class="card"><h3>GK5</h3><small>사업 참여</small></div>
-        <div class="card"><h3>KPS</h3><small>사업 참여</small></div>
+        <!-- 천궁 -->
+        <div class="card">
+          <div class="thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/M-SAM_Block-2_battery.jpg/960px-M-SAM_Block-2_battery.jpg" alt="천궁-II 포대(다기능 레이더와 발사대)" loading="lazy" /></div>
+          <div class="card-body"><h3>천궁</h3><p>적 항공기와 탄도미사일을 요격하는 국산 중거리 지대공 유도무기 체계</p><small>사업 참여</small></div>
+        </div>
+
+        <!-- 해궁 -->
+        <div class="card">
+          <div class="thumb fit"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/K-SAAM_mockup_at_IDEX_2015.jpg/960px-K-SAAM_mockup_at_IDEX_2015.jpg" alt="" aria-hidden="true" class="bg" loading="lazy" /><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/K-SAAM_mockup_at_IDEX_2015.jpg/960px-K-SAAM_mockup_at_IDEX_2015.jpg" alt="해궁(K-SAAM) 유도탄 모형 전체" loading="lazy" /></div>
+          <div class="card-body"><h3>해궁</h3><p>함정을 향해 날아오는 대함미사일과 항공기를 막는 함정용 근거리 대공 유도무기</p><small>사업 참여</small></div>
+        </div>
+
+        <!-- REDEYE: 2.75인치 로켓 -->
+        <div class="card">
+          <div class="thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Sgt._Brian_Boe_loads_a_2.75-inch_rocket_with_a_practice_warhead_into_an_M-260_rocket_pod_mounted_on_an_OV-10_Bronco_aircraft_during_the_Pacific_Air_Forces_%28PACAF%29_combat_ammunition_production_and_combat_aircraft_DF-ST-91-07824.jpg/960px-thumbnail.jpg" alt="2.75인치 로켓을 장전하는 모습" loading="lazy" /></div>
+          <div class="card-body"><h3>REDEYE</h3><p>기존 2.75인치 로켓에 유도 기능을 더해 정밀 타격이 가능하도록 한 유도로켓</p><small>사업 참여 · 2.75인치 미사일</small></div>
+        </div>
+
+        <!-- GK5: 천리안위성 2호 -->
+        <div class="card">
+          <div class="thumb"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/%EC%B2%9C%EB%A6%AC%EC%95%88%EC%9C%84%EC%84%B1_2B%ED%98%B8_%282%29_%281262%29.jpeg/960px-%EC%B2%9C%EB%A6%AC%EC%95%88%EC%9C%84%EC%84%B1_2B%ED%98%B8_%282%29_%281262%29.jpeg" alt="천리안위성 2B호(천리안위성 5호의 이전 세대 위성)" loading="lazy" /></div>
+          <div class="card-body"><h3>GK5</h3><p>2031년 발사 예정인 차세대 정지궤도 기상·우주기상 위성, 천리안위성 5호 (천리안위성 2A호 후속기)</p><small>사업 참여 · 천리안위성 5호</small></div>
+        </div>
+
+        <!-- KPS: 위성항법 -->
+        <div class="card">
+          <div class="thumb">
+            <svg viewBox="0 0 320 180" role="img" aria-label="지구 궤도를 도는 항법 위성들">
+              <rect width="320" height="180" fill="#050816" />
+              <g fill="#fff" opacity=".8"><circle cx="20" cy="30" r="1" /><circle class="tw" cx="300" cy="20" r="1.1" /><circle cx="120" cy="12" r=".8" /><circle cx="210" cy="40" r=".7" /></g>
+              <circle cx="160" cy="300" r="190" fill="url(#pEarth)" />
+              <circle cx="160" cy="300" r="194" fill="none" stroke="#8ec5ff" stroke-opacity=".5" stroke-width="3" />
+              <g fill="none" stroke="#a5b4fc" stroke-opacity=".3">
+                <ellipse cx="160" cy="150" rx="150" ry="70" />
+                <ellipse cx="160" cy="150" rx="120" ry="110" transform="rotate(-20 160 150)" />
+              </g>
+              <g stroke="#a5b4fc" stroke-width="1" stroke-dasharray="3 4" opacity=".7">
+                <path d="M48 70 L170 116M160 22 L170 116M276 64 L170 116" />
+              </g>
+              <circle cx="170" cy="116" r="4" fill="#fbbf24" />
+              <circle class="trail" cx="170" cy="116" r="11" fill="none" stroke="#fbbf24" stroke-width="1.5" />
+              <use href="#pSat" x="30" y="60" width="38" height="19" />
+              <use href="#pSat" x="141" y="12" width="38" height="19" />
+              <use href="#pSat" x="257" y="54" width="38" height="19" />
+            </svg>
+          </div>
+          <div class="card-body"><h3>KPS</h3><p>한반도 주변에 cm급 정밀 위치·항법·시각 정보를 제공하는 한국형 위성항법시스템</p><small>사업 참여</small></div>
+        </div>
       </div>
+      <p class="credits">
+        사진 출처(Wikimedia Commons):
+        <a href="https://commons.wikimedia.org/wiki/File:M-SAM_Block-2_battery.jpg" target="_blank" rel="noopener">천궁 — 방위사업청, 공공누리 제1유형</a> ·
+        <a href="https://commons.wikimedia.org/wiki/File:K-SAAM_mockup_at_IDEX_2015.jpg" target="_blank" rel="noopener">해궁 — Mztourist, CC BY-SA 4.0</a> ·
+        <a href="https://commons.wikimedia.org/wiki/File:Sgt._Brian_Boe_loads_a_2.75-inch_rocket_with_a_practice_warhead_into_an_M-260_rocket_pod_mounted_on_an_OV-10_Bronco_aircraft_during_the_Pacific_Air_Forces_(PACAF)_combat_ammunition_production_and_combat_aircraft_DF-ST-91-07824.jpg" target="_blank" rel="noopener">2.75인치 로켓 — 미 국방부, 퍼블릭 도메인</a> ·
+        <a href="https://commons.wikimedia.org/wiki/File:%EC%B2%9C%EB%A6%AC%EC%95%88%EC%9C%84%EC%84%B1_2B%ED%98%B8_(2)_(1262).jpeg" target="_blank" rel="noopener">천리안위성 2B호 — 한국항공우주연구원, 공공누리 제1유형</a>
+      </p>
     </section>
 
     <!-- 방명록 -->
