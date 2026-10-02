@@ -75,6 +75,13 @@
       border: 1px solid var(--line); background: var(--surface); color: var(--text);
       width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 16px;
     }
+    .login-btn {
+      font: inherit; font-size: 13px; font-weight: 600; height: 34px; padding: 0 14px; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--surface); color: var(--text);
+      transition: border-color .15s, color .15s;
+    }
+    .login-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .login-btn.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 
     /* 우주 배경: 지구(아래) + 위성(위) */
     .space {
@@ -189,7 +196,15 @@
     .tag {
       padding: 7px 14px; border-radius: 999px; font-size: 14px; font-weight: 500;
       background: var(--accent-soft); color: var(--accent);
+      display: inline-flex; align-items: center; gap: 8px;
     }
+    .tags .tag { padding-left: 6px; }
+    /* 회사 로고: 흰 원형 배지 위에 올려 라이트/다크 모두에서 잘 보이게 */
+    .tag-logo {
+      width: 24px; height: 24px; border-radius: 50%; background: #fff; flex: none;
+      display: grid; place-items: center; box-shadow: 0 0 0 1px rgba(0, 0, 0, .06);
+    }
+    .tag-logo img { width: 15px; height: 15px; object-fit: contain; display: block; }
 
     /* 경력 */
     /* 경력 배경: 판교하우스(왼쪽) + 아주대학교(오른쪽)를 가운데서 부드럽게 섞음 */
@@ -594,6 +609,7 @@
         <a href="#guestbook">방명록</a>
         <a href="#contact">연락처</a>
         <button class="theme-btn" id="themeBtn" aria-label="테마 전환">🌙</button>
+        <button class="login-btn" id="scAuthBtn" type="button">로그인</button>
       </nav>
     </div>
   </header>
@@ -662,12 +678,12 @@
     <section id="skills" class="reveal">
       <h2>Skills</h2>
       <div class="tags">
-        <span class="tag">AutoCAD</span>
-        <span class="tag">SolidWorks</span>
-        <span class="tag">CATIA</span>
-        <span class="tag">Ansys</span>
-        <span class="tag">Nastran/Patran</span>
-        <span class="tag">MATLAB</span>
+        <span class="tag"><span class="tag-logo" title="Autodesk"><img src="images/logos/autodesk.svg" alt="" /></span>AutoCAD</span>
+        <span class="tag"><span class="tag-logo" title="Dassault Systèmes"><img src="images/logos/dassault.svg" alt="" /></span>SolidWorks</span>
+        <span class="tag"><span class="tag-logo" title="Dassault Systèmes"><img src="images/logos/dassault.svg" alt="" /></span>CATIA</span>
+        <span class="tag"><span class="tag-logo" title="Ansys"><img src="images/logos/ansys.svg" alt="" /></span>Ansys</span>
+        <span class="tag"><span class="tag-logo" title="Hexagon (MSC Software)"><img src="images/logos/hexagon.svg" alt="" /></span>Nastran/Patran</span>
+        <span class="tag"><span class="tag-logo" title="MathWorks"><img src="images/logos/mathworks.png" alt="" /></span>MATLAB</span>
       </div>
     </section>
 
@@ -776,7 +792,6 @@
         <h2>Schedule</h2>
         <div class="sc-head-btns">
           <button class="sc-auth" id="scPwBtn" type="button" hidden>🔑 비밀번호 변경</button>
-          <button class="sc-auth" id="scAuthBtn" type="button">🔒 일정 편집 로그인</button>
         </div>
       </div>
       <div class="sc-bar">
@@ -820,7 +835,7 @@
     <!-- 일정 편집자 로그인 -->
     <dialog class="sc-login" id="scLogin" aria-labelledby="scLoginTitle">
       <form id="scLoginForm" method="dialog">
-        <h3 id="scLoginTitle">일정 편집 로그인</h3>
+        <h3 id="scLoginTitle">로그인</h3>
         <p>등록된 편집자 계정으로 로그인하면 일정을 편집할 수 있어요.</p>
         <input id="scEmail" type="text" placeholder="아이디 또는 이메일" autocomplete="username" autocapitalize="off" spellcheck="false" required />
         <input id="scPw" type="password" placeholder="비밀번호" autocomplete="current-password" required />
@@ -1499,7 +1514,7 @@
     // 편집자 로그인 / 로그아웃
     async function applyAuth(session) {
       canEdit = !!session && await checkEditor();
-      scAuthBtn.textContent = canEdit ? '✏️ 편집 중 · 로그아웃' : '🔒 일정 편집 로그인';
+      scAuthBtn.textContent = canEdit ? '로그아웃' : '로그인';
       scAuthBtn.classList.toggle('on', canEdit);
       $('scPwBtn').hidden = !canEdit;
       if (!canEdit) resetForm();
