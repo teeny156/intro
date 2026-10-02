@@ -285,12 +285,38 @@
     .gb-row .btn { cursor: pointer; font-family: inherit; }
     .gb-row .btn:disabled { opacity: .5; cursor: default; transform: none; }
     .gb-status { font-size: 14px; color: var(--muted); }
-    .gb-list { list-style: none; display: grid; gap: 10px; }
-    .gb-item { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
-    .gb-item .meta { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-    .gb-item .meta b { color: var(--text); font-size: 15px; }
-    .gb-item p { font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .gb-empty { color: var(--muted); font-size: 15px; }
+    /* 방명록 목록: 한 줄에 이름 | 내용 | 날짜·시간 */
+    .gb-list {
+      list-style: none; background: var(--surface); border: 1px solid var(--line);
+      border-radius: 12px; overflow: hidden;
+    }
+    .gb-item {
+      display: grid; grid-template-columns: minmax(56px, 110px) 1fr auto; gap: 14px; align-items: baseline;
+      padding: 11px 16px; font-size: 14.5px; border-top: 1px solid var(--line); cursor: pointer;
+      transition: background .15s;
+    }
+    .gb-item:first-child { border-top: none; }
+    .gb-item:hover, .gb-item:focus-visible { background: var(--accent-soft); outline: none; }
+    .gb-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gb-msg { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gb-time { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    /* 클릭하면 긴 내용 펼치기 */
+    .gb-item.open .gb-msg { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .gb-empty { color: var(--muted); font-size: 15px; padding: 16px; }
+    .gb-pager { display: flex; justify-content: center; gap: 6px; margin-top: 16px; }
+    .gb-pager:empty { display: none; }
+    .gb-pager button {
+      min-width: 34px; height: 34px; padding: 0 8px; border-radius: 8px; font: inherit; font-size: 14px;
+      border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+    .gb-pager button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .gb-pager button:disabled { opacity: .4; cursor: default; }
+    .gb-pager button[aria-current="page"] { opacity: 1; background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+    @media (max-width: 600px) {
+      .gb-item { grid-template-columns: minmax(44px, 72px) 1fr auto; gap: 10px; padding: 10px 12px; font-size: 14px; }
+      .gb-time { font-size: 12px; }
+    }
 
     /* 연락처 */
     .contact p { font-size: 17px; margin-bottom: 24px; }
@@ -604,6 +630,7 @@
         </div>
       </form>
       <ul class="gb-list" id="gbList"><li class="gb-empty">불러오는 중…</li></ul>
+      <nav class="gb-pager" id="gbPager" aria-label="방명록 페이지"></nav>
     </section>
 
     <!-- 연락처 -->
@@ -865,7 +892,16 @@
     const gbBtn = document.getElementById('gbBtn');
     const gbStatus = document.getElementById('gbStatus');
 
-    const fmt = (iso) => new Date(iso).toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' });
+    const gbPager = document.getElementById('gbPager');
+    const PAGE_SIZE = 10;
+    let gbPage = 1;
+
+    // 2026.09.30 20:18 형식
+    const pad = (n) => String(n).padStart(2, '0');
+    const fmt = (iso) => {
+      const d = new Date(iso);
+      return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
 
     function renderGuestbook(rows) {
       gbList.replaceChildren();
@@ -878,34 +914,70 @@
       }
       for (const r of rows) {
         // textContent만 사용 → 입력값에 HTML이 있어도 실행되지 않음
+        // 한 줄: 이름 | 내용 | 날짜·시간 (긴 내용은 클릭하면 펼쳐짐)
         const li = document.createElement('li');
         li.className = 'gb-item';
-        const meta = document.createElement('div');
-        meta.className = 'meta';
+        li.tabIndex = 0;
+        li.title = r.message;
         const name = document.createElement('b');
+        name.className = 'gb-name';
         name.textContent = r.name;
-        const time = document.createElement('span');
-        time.textContent = fmt(r.created_at);
-        meta.append(name, time);
-        const msg = document.createElement('p');
+        const msg = document.createElement('span');
+        msg.className = 'gb-msg';
         msg.textContent = r.message;
-        li.append(meta, msg);
+        const time = document.createElement('time');
+        time.className = 'gb-time';
+        time.dateTime = r.created_at;
+        time.textContent = fmt(r.created_at);
+        li.append(name, msg, time);
+        const toggle = () => li.classList.toggle('open');
+        li.addEventListener('click', toggle);
+        li.addEventListener('keydown', (e) => { if (e.key === 'Enter') toggle(); });
         gbList.append(li);
       }
     }
 
-    async function loadGuestbook() {
-      const { data, error } = await db
+    function renderPager(total) {
+      gbPager.replaceChildren();
+      const pages = Math.ceil(total / PAGE_SIZE);
+      if (pages <= 1) return;
+      const mk = (label, page, opts = {}) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.disabled = !!opts.disabled;
+        if (opts.current) b.setAttribute('aria-current', 'page');
+        if (opts.aria) b.setAttribute('aria-label', opts.aria);
+        b.addEventListener('click', () => { gbPage = page; loadGuestbook(true); });
+        return b;
+      };
+      gbPager.append(mk('‹', gbPage - 1, { disabled: gbPage === 1, aria: '이전 페이지' }));
+      // 현재 페이지 주변 최대 5개 번호만 표시
+      const start = Math.max(1, Math.min(gbPage - 2, pages - 4));
+      for (let p = start; p <= Math.min(pages, start + 4); p++) {
+        gbPager.append(mk(String(p), p, { current: p === gbPage, disabled: p === gbPage }));
+      }
+      gbPager.append(mk('›', gbPage + 1, { disabled: gbPage === pages, aria: '다음 페이지' }));
+    }
+
+    async function loadGuestbook(scroll) {
+      const from = (gbPage - 1) * PAGE_SIZE;
+      const { data, error, count } = await db
         .from('guestbook')
-        .select('name, message, created_at')
-        .order('created_at', { ascending: false })
-        .limit(50);
+        .select('name, message, created_at', { count: 'exact' })
+        .order('created_at', { ascending: false }) // 최신 글이 맨 앞
+        .range(from, from + PAGE_SIZE - 1);
+      // 글이 지워져 현재 페이지가 범위를 벗어나면(Supabase는 오류로 응답) 첫 페이지로
+      if (gbPage > 1 && (error || !data.length)) { gbPage = 1; return loadGuestbook(scroll); }
       if (error) {
         gbList.innerHTML = '<li class="gb-empty">방명록을 불러오지 못했어요.</li>';
+        gbPager.replaceChildren();
         console.error(error);
         return;
       }
       renderGuestbook(data);
+      renderPager(count || 0);
+      if (scroll) gbList.scrollIntoView({ block: 'nearest' });
     }
 
     gbForm.addEventListener('submit', async (e) => {
@@ -924,6 +996,7 @@
       }
       gbMsg.value = '';
       gbStatus.textContent = '고마워요! 🙌';
+      gbPage = 1; // 새 글은 첫 페이지 맨 위에 보임
       loadGuestbook();
     });
 
