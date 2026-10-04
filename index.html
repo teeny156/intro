@@ -1302,7 +1302,12 @@
       const { data, error } = await db.from('guestbook').delete().eq('id', r.id).select('id');
       if (error || !data.length) {
         btn.disabled = false;
-        gbStatus.textContent = '삭제하지 못했어요. 로그인 상태를 확인해 주세요.';
+        // 42501: DB에 삭제 권한(grant)이 없음 / 0건: 삭제 정책(RLS)이 없거나 편집자가 아님 → guestbook_delete.sql 실행 필요
+        const msg = error?.code === '42501' || !error
+          ? '삭제하지 못했어요. DB에 삭제 권한이 아직 없어요 (guestbook_delete.sql 실행 필요).'
+          : `삭제하지 못했어요. (${error.message})`;
+        gbStatus.textContent = msg;
+        alert(msg); // 상태 문구는 입력창 옆이라 목록에서 안 보일 수 있음
         if (error) console.error(error);
         return;
       }
