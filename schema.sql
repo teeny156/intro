@@ -10,7 +10,7 @@ create table if not exists public.guestbook (
 -- 공개 역할에는 읽기/쓰기 권한만 부여 (수정·삭제 권한 없음)
 grant select, insert on public.guestbook to anon, authenticated;
 
--- RLS: 누구나 읽기/쓰기만 가능, 수정·삭제는 불가 (대시보드에서만 관리)
+-- RLS: 누구나 읽기/쓰기만 가능, 수정은 불가 (삭제는 아래 편집자 정책 참고)
 alter table public.guestbook enable row level security;
 
 drop policy if exists "guestbook read" on public.guestbook;
@@ -109,5 +109,14 @@ create policy "schedules editor update"
 drop policy if exists "schedules editor delete" on public.schedules;
 create policy "schedules editor delete"
   on public.schedules for delete
+  to authenticated
+  using (public.is_schedule_editor());
+
+-- 방명록 글 삭제: 편집자만
+grant delete on public.guestbook to authenticated;
+
+drop policy if exists "guestbook editor delete" on public.guestbook;
+create policy "guestbook editor delete"
+  on public.guestbook for delete
   to authenticated
   using (public.is_schedule_editor());

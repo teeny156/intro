@@ -457,6 +457,15 @@
     .gb-time { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
     /* 클릭하면 긴 내용 펼치기 */
     .gb-item.open .gb-msg { white-space: pre-wrap; overflow-wrap: anywhere; }
+    /* 로그인한 편집자에게만 보이는 삭제 버튼 */
+    .gb-item.can-del { grid-template-columns: minmax(56px, 110px) 1fr auto auto; }
+    .gb-del {
+      align-self: center; font: inherit; font-size: 12px; padding: 3px 8px; border-radius: 6px; cursor: pointer;
+      background: var(--surface); color: var(--muted); border: 1px solid var(--line);
+      transition: color .15s, border-color .15s;
+    }
+    .gb-del:hover { color: #ef4444; border-color: #ef4444; }
+    .gb-del:disabled { opacity: .5; cursor: default; }
     .gb-empty { color: var(--muted); font-size: 15px; padding: 16px; }
     .gb-pager { display: flex; justify-content: center; gap: 6px; margin-top: 16px; }
     .gb-pager:empty { display: none; }
@@ -471,6 +480,7 @@
     @media (max-width: 600px) {
       .gb-item { grid-template-columns: minmax(44px, 72px) 1fr auto; gap: 10px; padding: 10px 12px; font-size: 14px; }
       .gb-time { font-size: 12px; }
+      .gb-item.can-del { grid-template-columns: minmax(44px, 72px) 1fr auto auto; }
     }
 
     /* 연락처 */
@@ -1223,6 +1233,17 @@
         time.dateTime = r.created_at;
         time.textContent = fmt(r.created_at);
         li.append(name, msg, time);
+        if (canEdit) {
+          li.classList.add('can-del');
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'gb-del';
+          del.textContent = '삭제';
+          del.setAttribute('aria-label', `${r.name}님의 글 삭제`);
+          del.addEventListener('click', (e) => { e.stopPropagation(); removeGuestbook(r, del); });
+          del.addEventListener('keydown', (e) => e.stopPropagation());
+          li.append(del);
+        }
         const toggle = () => li.classList.toggle('open');
         li.addEventListener('click', toggle);
         li.addEventListener('keydown', (e) => { if (e.key === 'Enter') toggle(); });
@@ -1257,7 +1278,7 @@
       const from = (gbPage - 1) * PAGE_SIZE;
       const { data, error, count } = await db
         .from('guestbook')
-        .select('name, message, created_at', { count: 'exact' })
+        .select('id, name, message, created_at', { count: 'exact' })
         .order('created_at', { ascending: false }) // 최신 글이 맨 앞
         .range(from, from + PAGE_SIZE - 1);
       // 글이 지워져 현재 페이지가 범위를 벗어나면(Supabase는 오류로 응답) 첫 페이지로
@@ -1271,6 +1292,22 @@
       renderGuestbook(data);
       renderPager(count || 0);
       if (scroll) gbList.scrollIntoView({ block: 'nearest' });
+    }
+
+    // 글 삭제 (편집자만, DB의 RLS 정책으로도 강제됨)
+    async function removeGuestbook(r, btn) {
+      if (!confirm(`${r.name}님의 글을 삭제할까요?\n\n"${r.message}"`)) return;
+      btn.disabled = true;
+      // 권한이 없으면 오류 없이 0건 삭제되므로 지워진 행을 돌려받아 확인
+      const { data, error } = await db.from('guestbook').delete().eq('id', r.id).select('id');
+      if (error || !data.length) {
+        btn.disabled = false;
+        gbStatus.textContent = '삭제하지 못했어요. 로그인 상태를 확인해 주세요.';
+        if (error) console.error(error);
+        return;
+      }
+      gbStatus.textContent = '삭제했어요 ✓';
+      loadGuestbook();
     }
 
     gbForm.addEventListener('submit', async (e) => {
@@ -1529,6 +1566,7 @@
       $('scPwBtn').hidden = !canEdit;
       if (!canEdit) resetForm();
       renderDay();
+      loadGuestbook(); // 삭제 버튼 표시/숨김
     }
 
     scAuthBtn.addEventListener('click', async () => {
