@@ -1597,30 +1597,36 @@
       const btn = document.getElementById('bgmBtn');
       // 방문할 때마다 항상 켜진 상태로 시작. 끄기는 이번 방문에만 적용됨
       try { localStorage.removeItem('bgm'); } catch (e) {}
-      let wantOn = true, unlocked = false;
+      let wantOn = true, unlocked = false; // unlocked: 소리 재생이 허용된 상태
       let player = null, ready = false, playing = false;
 
-      // 소리가 실제로 나는 중일 때만 🔊 (음소거 상태로 재생 중이면 🔇)
+      // 버튼은 음악 켜짐/꺼짐 설정을 표시 (기본 🔊)
       const render = () => {
-        const audible = playing && unlocked && wantOn;
-        btn.textContent = audible ? '🔊' : '🔇';
-        btn.classList.toggle('on', audible);
-        const label = audible ? '배경음악 끄기' : '배경음악 켜기';
+        btn.textContent = wantOn ? '🔊' : '🔇';
+        btn.classList.toggle('on', wantOn);
+        const label = wantOn ? '배경음악 끄기' : '배경음악 켜기';
         btn.setAttribute('aria-label', label);
         btn.title = label;
       };
       const play = () => {
         if (!ready) return;
-        // 사용자 입력 전에는 브라우저가 소리 있는 자동재생을 막으므로 음소거로 먼저 재생
-        if (unlocked) { player.unMute(); player.setVolume(40); } else player.mute();
-        player.playVideo();
+        // 소리 켠 채로 바로 재생 시도
+        player.unMute(); player.setVolume(40); player.playVideo();
+        if (unlocked) return;
+        // 브라우저가 소리 있는 자동재생을 막으면 음소거로 재생하고, 첫 클릭/키 입력 때 소리 켜기
+        setTimeout(() => {
+          if (unlocked || !wantOn) return;
+          if (playing && !player.isMuted()) unlocked = true;
+          else { player.mute(); player.playVideo(); }
+        }, 1500);
       };
 
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // 아직 음소거 상태면 첫 클릭은 소리 켜기
-        wantOn = unlocked ? !(playing && wantOn) : true;
+        // 음소거로 재생 중이면 첫 클릭은 소리 켜기
+        if (!unlocked && wantOn) { unlocked = true; play(); return; }
         unlocked = true;
+        wantOn = !wantOn;
         if (wantOn) play(); else if (ready) player.pauseVideo();
         render();
       });
