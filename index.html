@@ -1172,7 +1172,10 @@
     // 방명록 (Supabase) — publishable 키는 공개돼도 되는 키, 권한은 RLS로 제한
     const SUPABASE_URL = 'https://ywggtsezqmyaddslqdvh.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_OYAKRfNzxCTEne8Qai5ZbA_qOGtmPSn';
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // 로그인 정보를 sessionStorage에 저장 → 탭/창을 닫으면 자동 로그아웃
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { storage: window.sessionStorage },
+    });
 
     const gbList = document.getElementById('gbList');
     const gbForm = document.getElementById('gbForm');
