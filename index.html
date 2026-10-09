@@ -402,6 +402,13 @@
       border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; outline: none;
     }
     .sc-form input:focus, .sc-login input:focus { border-color: var(--accent); }
+    /* 24시간제 시·분 선택 상자 */
+    .sc-hm { display: inline-flex; align-items: center; gap: 2px; }
+    .sc-hm select {
+      font: inherit; font-size: 14px; color: var(--text); background: var(--surface); cursor: pointer;
+      border: 1px solid var(--line); border-radius: 10px; padding: 9px 6px; outline: none; font-variant-numeric: tabular-nums;
+    }
+    .sc-hm select:focus { border-color: var(--accent); }
     .sc-form .btn, .sc-login .btn { cursor: pointer; font-family: inherit; padding: 9px 16px; }
     .sc-form .btn:disabled, .sc-login .btn:disabled { opacity: .5; cursor: default; transform: none; }
 
@@ -833,12 +840,12 @@
           <div class="sc-range">
             <span class="sc-when">시작
               <input id="scStart" type="date" aria-label="시작일" required />
-              <input id="scTime" type="time" aria-label="시작 시간 (선택)" />
+              <span class="sc-hm" id="scTime"><select aria-label="시작 시 (선택)"></select>:<select aria-label="시작 분"></select></span>
             </span>
             <span aria-hidden="true">~</span>
             <span class="sc-when">종료
               <input id="scEnd" type="date" aria-label="종료일" required />
-              <input id="scEndTime" type="time" aria-label="종료 시간 (선택)" />
+              <span class="sc-hm" id="scEndTime"><select aria-label="종료 시 (선택)"></select>:<select aria-label="종료 분"></select></span>
             </span>
           </div>
           <input id="scTitle" type="text" placeholder="일정 제목" maxlength="60" required />
@@ -1343,7 +1350,24 @@
     const $ = (id) => document.getElementById(id);
     const scGrid = $('scGrid'), scList = $('scList'), scForm = $('scForm');
     const scStart = $('scStart'), scEnd = $('scEnd');
-    const scTime = $('scTime'), scEndTime = $('scEndTime'), scTitle = $('scTitle'), scMemo = $('scMemo');
+    // 24시간제 시·분 선택 상자를 시간 입력칸처럼 .value('HH:MM' 또는 '')로 다룸
+    const timeBox = (el) => {
+      const [h, m] = el.querySelectorAll('select');
+      const fill = (sel, n) => {
+        sel.add(new Option('--', ''));
+        for (let i = 0; i < n; i++) sel.add(new Option(pad(i), pad(i)));
+      };
+      fill(h, 24); fill(m, 60);
+      // 시를 고르면 분은 00부터, 시를 비우면 분도 비움
+      h.addEventListener('change', () => { m.value = h.value ? (m.value || '00') : ''; });
+      m.addEventListener('change', () => { if (m.value && !h.value) h.value = '00'; });
+      return {
+        get value() { return h.value ? `${h.value}:${m.value || '00'}` : ''; },
+        set value(v) { [h.value, m.value] = v ? v.split(':') : ['', '']; },
+      };
+    };
+    const scTime = timeBox($('scTime')), scEndTime = timeBox($('scEndTime'));
+    const scTitle = $('scTitle'), scMemo = $('scMemo');
     const hm = (t) => (t ? t.slice(0, 5) : '');
     const scSave = $('scSave'), scCancel = $('scCancel'), scStatus = $('scStatus');
     const scAuthBtn = $('scAuthBtn'), scLogin = $('scLogin');
